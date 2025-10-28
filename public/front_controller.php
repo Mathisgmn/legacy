@@ -42,15 +42,8 @@ if (!str_starts_with($requestUri, '/api/')) {
             sendResponse405();
             break;
     }
-} elseif ($requestUri === '/api/user') {
-    switch ($requestMethod) {
-        case 'POST':
-            $userController->create();
-            break;
-        default:
-            sendResponse405();
-            break;
-    }
+} elseif ($requestUri === '/api/user' && $requestMethod === 'POST') {
+    $userController->create();
 } else {
     $payload = authenticateRequest($jwtService);
     if (!$payload) {

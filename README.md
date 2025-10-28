@@ -178,6 +178,7 @@ Détails :
     ```
 
 6. Vérification du fonctionnement de l'application via un client HTTP (ex. : navigateur) : http://localhost:8000/api/user.
+   - Une réponse `{"status":"Error","message":"Method Not Allowed"}` est tout à fait normale. 
 
 7. Vérification du fonctionnement du client jQuery via un navigateur : http://localhost:8000/client.php.
 
@@ -200,7 +201,7 @@ Pour le détail des codes d'état de réponse HTTP, voir : [Liste des codes HTTP
 
 ### Error Log
 
-Toutes les exceptions PHP générées côté serveur sont journalisées dans le fichier `/logs/error.log`.
+La grande majorité des exceptions PHP générées côté serveur est journalisée dans le fichier `/logs/error.log`.
 
 Ce fichier permet la surveillance de l'application en fonctionnement et constitue une aide pour l'identification de l'origine des exceptions PHP générées.
 
