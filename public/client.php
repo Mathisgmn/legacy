@@ -21,7 +21,12 @@
         avatar: "coderanger.jpg",
         email: "adrien.girard@example.com",
         password: "password"
-    }
+    };
+
+    let partialDataSample = {
+        pseudo: "Avalonee",
+        avatar: "avalonee.jpg"
+    };
 
     function authenticate(email, password) {
         $.ajax({
@@ -121,11 +126,11 @@
         });
     }
 
-    function endpointUpdate(id) {
+    function endpointUpdate(id, data) {
         $.ajax({
             url: 'http://localhost:8000/api/user' + '/' + id,
             method: 'PATCH',
-            data: JSON.stringify({pseudo: "Avalone", avatar: "avalone.jpg"}),
+            data: JSON.stringify(data),
             headers: {
                 'Authorization': 'Bearer ' + localStorage.getItem('accessToken'),
             },
@@ -174,7 +179,7 @@
      *   - 2
      *   - 3
      */
-    const action = 4;
+    const action = 9;
     switch (action) {
         case 1:
             authenticate("lucas.morel@example.com", "password");
@@ -195,14 +200,14 @@
             endpointCreate(dataSample);
             break;
         case 7:
-            endpointUpdate(1);
+            endpointUpdate(1, partialDataSample);
             break;
         case 8:
             // endpointReplace(1);
             // TODO Nothing to do
             break;
         case 9:
-            endpointDelete(7);
+            endpointDelete(6);
             break;
         default:
             console.log('Unknown action number: ' + action);
