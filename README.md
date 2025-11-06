@@ -205,6 +205,35 @@ La grande majorité des exceptions PHP générées côté serveur est journalis�
 
 Ce fichier permet la surveillance de l'application en fonctionnement et constitue une aide pour l'identification de l'origine des exceptions PHP générées.
 
+## Méthode AJAX
+
+AJAX (_Asynchronous JavaScript and XML_) désigne un ensemble de techniques permettant à une page web de communiquer avec un serveur HTTP de manière asynchrone. Concrètement, le navigateur envoie une requête grâce à JavaScript (par exemple avec `XMLHttpRequest` ou `fetch`/jQuery) sans recharger la page complète. Lorsque la réponse arrive, seule la portion d'interface concernée est mise à jour dynamiquement, ce qui améliore la réactivité et l'expérience utilisateur.
+
+## Schéma du mécanisme d'authentification
+
+```
+Utilisateur
+    │ 1. POST /api/login (email, mot de passe)
+    ▼
+API ──► Vérifie les identifiants
+    │        │
+    │        ├─► Génère un Access Token (JWT, courte durée)
+    │        └─► Génère un Refresh Token (longue durée, stocké en cookie HttpOnly)
+    ▼
+Client
+    │ 2. Stocke le JWT côté client (localStorage) pour les appels protégés
+    │
+    │ 3. Utilise le JWT dans l'en-tête Authorization pour appeler l'API
+    ▼
+API ──► Vérifie le JWT
+    │        │
+    │        └─► En cas d'expiration : POST /api/token/refresh
+    ▼                       (envoie le Refresh Token, reçoit un nouveau JWT)
+Client
+    │ 4. Bouton de déconnexion : POST /api/logout
+    ▼             (Refresh Token révoqué, cookie supprimé, JWT effacé côté client)
+```
+
 ## Avertissement
 
 Ce dépôt a été conçu à des fins pédagogiques pour illustrer des concepts et des principes spécifiques. Le code n'est pas destiné à être utilisé en production, car il peut ne pas répondre aux exigences de sécurité, de qualité, de robustesse et de performance nécessaires dans un environnement professionnel. Il sert uniquement à des fins d'apprentissage et ne doit pas être considéré comme un modèle de développement. Ce code est donc fourni à des fins éducatives et sans engagement de performance ou de fiabilité.

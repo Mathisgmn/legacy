@@ -83,6 +83,12 @@ class UserController
                 exit(1);
             }
 
+            $tokenOwner = $this->user->findByToken($refreshToken);
+            if (!$tokenOwner || (int) $tokenOwner['id'] !== (int) $id) {
+                sendResponseCustom('Invalid refresh token for this user', null, 'Error', 403);
+                exit(1);
+            }
+
             if (!$this->user->findById($id)) {
                 sendResponseCustom('User not found', null, 'User not found', 404);
                 exit(1);
