@@ -17,7 +17,7 @@ require_once __DIR__ . '/../src/Security/JwtService.php';
 require_once __DIR__ . '/../src/Controller/UserController.php';
 
 $userController = new UserController();
-$jwtService = new JwtService();
+$jwtService = new JwtService('ma_cle_secrete');
 
 $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $requestMethod = $_SERVER['REQUEST_METHOD'];
@@ -46,27 +46,23 @@ if (!str_starts_with($requestUri, '/api/')) {
     $userController->create();
 } else {
     $payload = authenticateRequest($jwtService);
-    if (!$payload || !isset($payload['user_id'])) {
+    if (!$payload) {
         sendResponse401();
         exit(1);
-    }
-
-    $authenticatedUserId = (int) $payload['user_id'];
-
-    try {
-        if (!$userController->getUser()->findById($authenticatedUserId)) {
+    } else {
+        try {
+            $userId = $payload['user_id'];
+            $user = $userController->getUser()->findById($userId);
+//            sendResponseCustom('Successfully retrieved user data');
+        } catch (Exception $e) {
             sendResponse404();
             exit(1);
         }
-    } catch (Exception $e) {
-        sendResponse500();
-        exit(1);
     }
-
     if ($requestUri === '/api/logout') {
         switch ($requestMethod) {
             case 'POST':
-                $userController->deauthenticate($authenticatedUserId);
+                $userController->deauthenticate($userId);
                 break;
             default:
                 sendResponse405();
@@ -91,18 +87,10 @@ if (!str_starts_with($requestUri, '/api/')) {
                 $userController->replace($userId);
                 break;
             case 'PATCH':
-                if ($authenticatedUserId !== (int) $userId) {
-                    sendResponseCustom('You can only modify your own account', null, 'Error', 403);
-                    break;
-                }
-                $userController->update($userId, $authenticatedUserId);
+                $userController->update($userId);
                 break;
             case 'DELETE':
-                if ($authenticatedUserId !== (int) $userId) {
-                    sendResponseCustom('You can only delete your own account', null, 'Error', 403);
-                    break;
-                }
-                $userController->delete($userId, $authenticatedUserId);
+                $userController->delete($userId);
                 break;
             default:
                 sendResponse405();
