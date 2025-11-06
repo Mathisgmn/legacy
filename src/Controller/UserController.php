@@ -73,18 +73,13 @@ class UserController
         }
     }
 
-    public function update($id, $authUserId): void
+    public function update($id): void
     {
         try {
             $refreshToken = $_COOKIE['refresh_token'] ?? null;
 
             if (!$refreshToken) {
                 sendResponseCustom('No refresh token found', null, 'Error', 400);
-                exit(1);
-            }
-
-            if ((int) $authUserId !== (int) $id) {
-                sendResponseCustom('You can only modify your own account', null, 'Error', 403);
                 exit(1);
             }
 
@@ -120,9 +115,8 @@ class UserController
 
             $this->user->setFields($id, $toBeUpdated);
             $result = $this->user->findById($id);
-            $userData = $result ? $result[0] : null;
 
-            sendResponseCustom('Successfully update data', $userData);
+            sendResponseCustom('Successfully update data', $result);
         } catch (Exception $e) {
             logWithDate('DB connection failed', $e->getMessage());
             sendResponse500();
@@ -134,14 +128,9 @@ class UserController
         // TODO Nothing to do
     }
 
-    public function delete($id, $authUserId): void
+    public function delete($id): void
     {
         try {
-            if ((int) $authUserId !== (int) $id) {
-                sendResponseCustom('You can only delete your own account', null, 'Error', 403);
-                exit(1);
-            }
-
             if (!$this->user->findById($id)) {
                 sendResponse404();
                 exit(1);
@@ -192,12 +181,7 @@ class UserController
             $status = $badResult ? 'Error' : 'Success';
             $message = $badResult ? 'Invalid credentials' : 'Successfully authenticate user';
 
-            $data = ['accessToken' => $accessToken];
-            if (!$badResult) {
-                $data['userId'] = $user['id'];
-            }
-
-            sendResponseCustom($message, $data, $status, $httpResponseCode);
+            sendResponseCustom($message, ['accessToken' => $accessToken], $status, $httpResponseCode);
         } catch (Exception $e) {
             logWithDate('DB connection failed', $e->getMessage());
             sendResponse500();
@@ -249,10 +233,7 @@ class UserController
             exit(1);
         }
 
-        sendResponseCustom('Successfully reauthenticate user', [
-            'accessToken' => $accessToken,
-            'userId' => $user['id'] ?? null,
-        ]);
+        sendResponseCustom('Successfully reauthenticate user', ['accessToken' => $accessToken]);
         exit(0);
     }
 }

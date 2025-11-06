@@ -182,32 +182,6 @@ Détails :
 
 7. Vérification du fonctionnement du client jQuery via un navigateur : http://localhost:8000/client.php.
 
-## Utilisation du client jQuery
-
-Le fichier [`/public/client.php`](./public/client.php) fournit une interface minimale pour interagir avec l'API.
-
-1. Démarrer le serveur interne de PHP :
-   ```bash
-   php -S localhost:8000 -t public
-   ```
-2. Ouvrir http://localhost:8000/client.php dans un navigateur.
-3. Depuis ce client vous pouvez :
-   - Créer un compte grâce au formulaire « Inscription ».
-   - Vous authentifier pour obtenir un _access token_ (stocké dans le `localStorage`) et un _refresh token_ (cookie HTTP only).
-   - Rafraîchir automatiquement l'access token lors des appels protégés.
-   - Mettre à jour votre pseudo, votre genre ou votre avatar.
-   - Vous désauthentifier ou supprimer définitivement votre compte.
-
-Chaque réponse de l'API est affichée dans le panneau d'état, ce qui permet de vérifier rapidement le bon déroulement d'une opération.
-
-## Comprendre la méthode AJAX
-
-AJAX (_Asynchronous JavaScript and XML_) est une technique qui permet à une page web de communiquer avec un serveur sans provoquer de rechargement complet de la page. Concrètement, le navigateur envoie une requête HTTP asynchrone (généralement via `XMLHttpRequest` ou `fetch`) et, lorsque la réponse est reçue, JavaScript met à jour uniquement les éléments nécessaires du DOM. L'utilisateur bénéficie ainsi d'une expérience plus fluide : les formulaires peuvent être soumis, les listes rafraîchies ou les messages affichés sans interrompre l'interaction en cours. Malgré son nom, AJAX ne se limite plus au format XML ; JSON est aujourd'hui le format le plus courant pour échanger des données.
-
-## Schéma du mécanisme d'authentification
-
-Un résumé visuel du cycle d'authentification (création de l'access token, usage du refresh token, renouvellement et révocation) est proposé dans [`stuff/authentication_flow.md`](./stuff/authentication_flow.md).
-
 ## Gestion des erreurs
 
 ### Codes de réponses HTTP de l'API
