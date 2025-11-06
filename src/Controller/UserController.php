@@ -7,10 +7,10 @@ class UserController
     private User $user;
     private JwtService $jwtService;
 
-    public function __construct()
+    public function __construct(JwtService $jwtService)
     {
         $this->user = new User();
-        $this->jwtService = new JwtService();
+        $this->jwtService = $jwtService;
     }
 
     public function getUser(): User

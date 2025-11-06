@@ -16,8 +16,8 @@ require_once __DIR__ . '/../helpers/jwt_helper.php';
 require_once __DIR__ . '/../src/Security/JwtService.php';
 require_once __DIR__ . '/../src/Controller/UserController.php';
 
-$userController = new UserController();
-$jwtService = new JwtService('ma_cle_secrete');
+$jwtService = new JwtService();
+$userController = new UserController($jwtService);
 
 $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $requestMethod = $_SERVER['REQUEST_METHOD'];
