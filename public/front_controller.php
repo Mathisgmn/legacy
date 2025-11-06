@@ -78,19 +78,23 @@ if (!str_starts_with($requestUri, '/api/')) {
                 break;
         }
     } elseif (preg_match('#^/api/user/(\d+)$#', $requestUri, $matches)) {
-        $userId = $matches[1];
+        $requestedUserId = (int) $matches[1];
+        if ($requestedUserId !== (int) $userId) {
+            sendResponseCustom('Access denied: you can only act on your own account', null, 'Error', 403);
+            exit(1);
+        }
         switch ($requestMethod) {
             case 'GET':
-                $userController->get($userId);
+                $userController->get($requestedUserId);
                 break;
             case 'PUT':
-                $userController->replace($userId);
+                $userController->replace($requestedUserId);
                 break;
             case 'PATCH':
-                $userController->update($userId);
+                $userController->update($requestedUserId);
                 break;
             case 'DELETE':
-                $userController->delete($userId);
+                $userController->delete($requestedUserId);
                 break;
             default:
                 sendResponse405();
