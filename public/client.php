@@ -10,7 +10,17 @@
 <body>
 <main class="container">
     <h1>Client jQuery</h1>
+
+    <form id="loginForm">
+        <fieldset role="group">
+            <input type="email" id="email" name="email" placeholder="Email" required />
+            <input type="password" id="password" name="password" placeholder="Mot de passe" required />
+            <button type="submit">Se connecter</button>
+        </fieldset>
+        <small id="loginMsg" aria-live="polite"></small>
+    </form>
 </main>
+
 <script>
     let dataSample = {
         first_name: "Adrien",
@@ -36,10 +46,10 @@
             success: function (response) {
                 const accessToken = response.data.accessToken;
                 localStorage.setItem('accessToken', accessToken);
-                // TODO Do something if needed
+                $('#loginMsg').text('Connexion réussie.');
             },
             error: function () {
-                // TODO Do something if needed
+                $('#loginMsg').text('Échec de la connexion.');
             }
         });
     }
@@ -53,11 +63,8 @@
             },
             success: function (response) {
                 localStorage.removeItem('accessToken');
-                // TODO Do something if needed
             },
-            error: function () {
-                // TODO Do something if needed
-            }
+            error: function () {}
         });
     }
 
@@ -68,12 +75,9 @@
             success: function (response) {
                 const accessToken = response.data.accessToken;
                 localStorage.setItem('accessToken', accessToken);
-                // TODO Do something if needed
                 if (callback) callback(response.data.accessToken);
             },
-            error: function () {
-                // TODO Do something if needed
-            }
+            error: function () {}
         });
     }
 
@@ -84,12 +88,8 @@
             headers: {
                 'Authorization': 'Bearer ' + localStorage.getItem('accessToken'),
             },
-            success: function (response) {
-                // TODO Do something if needed
-            },
-            error: function () {
-                // TODO Do something if needed
-            }
+            success: function (response) {},
+            error: function () {}
         });
     }
 
@@ -100,12 +100,8 @@
             headers: {
                 'Authorization': 'Bearer ' + localStorage.getItem('accessToken'),
             },
-            success: function (response) {
-                // TODO Do something if needed
-            },
-            error: function () {
-                // TODO Do something if needed
-            }
+            success: function (response) {},
+            error: function () {}
         });
     }
 
@@ -117,12 +113,8 @@
             headers: {
                 'Authorization': 'Bearer ' + localStorage.getItem('accessToken'),
             },
-            success: function (response) {
-                // TODO Do something if needed
-            },
-            error: function () {
-                // TODO Do something if needed
-            }
+            success: function (response) {},
+            error: function () {}
         });
     }
 
@@ -133,19 +125,14 @@
             data: JSON.stringify(data),
             headers: {
                 'Authorization': 'Bearer ' + localStorage.getItem('accessToken'),
+                'Content-Type': 'application/json'
             },
-            success: function (response) {
-                // TODO Do something if needed
-            },
-            error: function () {
-                // TODO Do something if needed
-            }
+            success: function (response) {},
+            error: function () {}
         });
     }
 
-    function endpointReplace(id) {
-        // TODO Nothing to do
-    }
+    function endpointReplace(id) {}
 
     function endpointDelete(id) {
         $.ajax({
@@ -154,65 +141,32 @@
             headers: {
                 'Authorization': 'Bearer ' + localStorage.getItem('accessToken'),
             },
-            success: function (response) {
-                // TODO Do something if needed
-            },
-            error: function () {
-                // TODO Do something if needed
-            }
+            success: function (response) {},
+            error: function () {}
         });
     }
 
-    /*
-     * Example of a sequence of actions:
-     *   - 4
-     *   - 1 (with valid credentials)
-     *   - 4
-     *   - 1 (with invalid credentials)
-     *   - 4
-     *   - 1 (with valid credentials)
-     *   - 4
-     *   - 2
-     *   - 4
-     *   - 1 (with valid credentials, then wait for 5 minutes or change JWT_TTL value)
-     *   - 3
-     *   - 2
-     *   - 3
-     */
-    const action = 9;
+    const action = 0;
     switch (action) {
-        case 1:
-            authenticate("lucas.morel@example.com", "password");
-            break;
-        case 2:
-            deauthenticate();
-            break;
-        case 3:
-            reauthenticate();
-            break;
-        case 4:
-            endpointList();
-            break;
-        case 5:
-            endpointGet(1);
-            break;
-        case 6:
-            endpointCreate(dataSample);
-            break;
-        case 7:
-            endpointUpdate(1, partialDataSample);
-            break;
-        case 8:
-            // endpointReplace(1);
-            // TODO Nothing to do
-            break;
-        case 9:
-            endpointDelete(6);
-            break;
-        default:
-            console.log('Unknown action number: ' + action);
-            break;
+        case 1: authenticate("lucas.morel@example.com", "password"); break;
+        case 2: deauthenticate(); break;
+        case 3: reauthenticate(); break;
+        case 4: endpointList(); break;
+        case 5: endpointGet(1); break;
+        case 6: endpointCreate(dataSample); break;
+        case 7: endpointUpdate(1, partialDataSample); break;
+        case 8: break;
+        case 9: endpointDelete(6); break;
+        default: break;
     }
+
+    $('#loginForm').on('submit', function (e) {
+        e.preventDefault();
+        const email = $('#email').val().trim();
+        const password = $('#password').val();
+        $('#loginMsg').text('Connexion en cours...');
+        authenticate(email, password);
+    });
 </script>
 </body>
 </html>
