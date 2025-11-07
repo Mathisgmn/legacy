@@ -18,8 +18,8 @@ class UserController
         $this->jwtService = $jwtService;
         $this->presence = new UserPresence();
         $this->gameInvitation = new GameInvitation();
-        $timeout = (int) ($_ENV['USER_PRESENCE_TTL'] ?? 300);
-        $this->presenceTimeout = $timeout > 0 ? $timeout : 300;
+        $timeout = (int) ($_ENV['USER_PRESENCE_TTL'] ?? 15);
+        $this->presenceTimeout = $timeout > 0 ? $timeout : 15;
     }
 
     public function getUser(): User

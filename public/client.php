@@ -186,9 +186,10 @@
 <script>
     const API_BASE = 'http://localhost:8000/api';
 
-    const ONLINE_PLAYERS_REFRESH = 10000;
-    const INVITATIONS_REFRESH = 12000;
-    const GAME_REFRESH = 5000;
+    const REFRESH_INTERVAL_FAST = 2000;
+    const ONLINE_PLAYERS_REFRESH = REFRESH_INTERVAL_FAST;
+    const INVITATIONS_REFRESH = REFRESH_INTERVAL_FAST;
+    const GAME_REFRESH = REFRESH_INTERVAL_FAST;
     const TURN_TIMER_DURATION = 8;
 
     let onlinePlayersInterval = null;

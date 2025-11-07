@@ -36,11 +36,12 @@ MCD des entités `user` et `refresh_token` avec spécification des types MySQL.
 | --- | --- | --- |
 | `game` | `target_word`, `status`, `created_at`, `updated_at`, `completed_at` | Stocke l'état courant d'une partie (mot cible, statut métier et horodatages de suivi). |
 | `game_player` | `game_id`, `user_id`, `role`, `turn_order`, `joined_at` | Associe les joueurs à une partie, précise leur rôle (`initiator` ou `invitee`) et l'ordre de passage. |
-| `game_guess` | `game_id`, `game_player_id`, `guess_word`, `result_pattern`, `created_at` | Journalise chaque proposition avec son auteur et le retour lettre par lettre. |
+| `game_guess` | `game_id`, `game_player_id`, `guess_word`, `result_pattern`, `attempt_number`, `is_correct`, `created_at` | Journalise chaque proposition avec son auteur, le retour lettre par lettre et le rang de l'essai. |
 
 **Colonnes supplémentaires en production**
 
 - `user.last_connected_at` : Date et heure de la dernière connexion de l'utilisateur, utilisée pour calculer l'état « en ligne » affiché côté client.
+- `user_presence.status` / `user_presence.last_connected_at` : Suivi de la disponibilité côté serveur. Les entrées expirent après 15 secondes d'inactivité par défaut (paramétrable via `USER_PRESENCE_TTL`). Les horodatages sont stockés en UTC pour fiabiliser l'expiration.
 
 ## _Endpoints_ disponibles
 
@@ -172,6 +173,7 @@ Détails :
     JWT_SECRET=my_secret_key_not_really_so_secret_please_change_me
     JWT_TTL=300
     JWT_REFRESH_TTL=604800
+    USER_PRESENCE_TTL=15
     ```
 
 4. Création d'un fichier de journalisation (_logging_) destiné à conserver une trace des exceptions PHP générées par l'application, avec **permissions suffisantes** (accès en écriture) :
