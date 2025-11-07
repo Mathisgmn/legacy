@@ -389,25 +389,42 @@
     }
 
     function sendInvitation(opponentId) {
+        $('#onlinePlayersMsg').text('Création de la partie...');
+
         $.ajax({
-            url: `${API_BASE}/game/invite`,
+            url: `${API_BASE}/game`,
             method: 'POST',
             headers: {
                 'Authorization': 'Bearer ' + getStoredToken(),
+                'Content-Type': 'application/json',
             },
-            data: { opponent_id: opponentId },
+            data: JSON.stringify({ opponent_id: opponentId }),
+            processData: false,
             xhrFields: {
                 withCredentials: true,
             },
-            success: function (response) {
-                $('#onlinePlayersMsg').text('Invitation envoyée.');
-                const maybeGameId = response.data?.game_id || response.data?.id;
-                if (maybeGameId) {
-                    setCurrentGame(maybeGameId);
+            success: function (creationResponse) {
+                const createdGameId = creationResponse.data?.game?.id
+                    || creationResponse.data?.game_id
+                    || creationResponse.data?.id;
+
+                if (!createdGameId) {
+                    $('#onlinePlayersMsg').text('Partie créée mais identifiant introuvable.');
+                    return;
                 }
+
+                const invitation = creationResponse.data?.invitation;
+                if (!invitation) {
+                    $('#onlinePlayersMsg').text('Partie créée mais aucune invitation enregistrée.');
+                    return;
+                }
+
+                $('#onlinePlayersMsg').text('Invitation envoyée.');
+                setCurrentGame(createdGameId);
+                fetchInvitations();
             },
             error: function (xhr) {
-                const message = handleAjaxError(xhr, "Impossible d'envoyer l'invitation.");
+                const message = handleAjaxError(xhr, 'Impossible de créer la partie.');
                 $('#onlinePlayersMsg').text(message);
             }
         });
@@ -499,6 +516,7 @@
                 const invitations = response.data || [];
                 const list = $('#invitationList');
                 list.empty();
+                $('#invitationMsg').text('');
 
                 if (!invitations.length) {
                     list.append('<li>Aucune invitation en attente.</li>');
@@ -509,9 +527,10 @@
                     const listItem = $('<li>').addClass('inline-actions');
                     const from = invitation.from?.pseudo || invitation.from?.email || `Joueur #${invitation.from_id || invitation.id}`;
                     listItem.append($('<span>').text(`Invitation de ${from}`));
+                    const targetGameId = invitation.game_id || invitation.id;
                     const acceptButton = $('<button type="button">').text('Accepter');
                     acceptButton.on('click', function () {
-                        acceptInvitation(invitation.id);
+                        acceptInvitation(targetGameId);
                     });
                     listItem.append(acceptButton);
                     list.append(listItem);

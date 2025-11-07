@@ -99,6 +99,38 @@ class UserController
         }
     }
 
+    public function listInvitations(int $currentUserId): void
+    {
+        try {
+            $rawInvitations = $this->gameInvitation->listForRecipient($currentUserId, [GameInvitation::STATUS_PENDING]);
+
+            $normalized = array_map(static function (array $invitation): array {
+                $from = [
+                    'id' => isset($invitation['sender_id']) ? (int) $invitation['sender_id'] : null,
+                    'pseudo' => $invitation['sender_pseudo'] ?? null,
+                    'email' => $invitation['sender_email'] ?? null,
+                    'first_name' => $invitation['sender_first_name'] ?? null,
+                    'last_name' => $invitation['sender_last_name'] ?? null,
+                ];
+
+                return [
+                    'id' => isset($invitation['id']) ? (int) $invitation['id'] : null,
+                    'game_id' => isset($invitation['game_id']) ? (int) $invitation['game_id'] : null,
+                    'status' => $invitation['status'] ?? null,
+                    'from' => $from,
+                    'created_at' => $invitation['created_at'] ?? null,
+                    'updated_at' => $invitation['updated_at'] ?? null,
+                    'game_status' => $invitation['game_status'] ?? null,
+                ];
+            }, $rawInvitations);
+
+            sendResponseCustom('Invitations retrieved', $normalized);
+        } catch (Exception $e) {
+            logWithDate('Invitation listing failed', $e->getMessage());
+            sendResponse500();
+        }
+    }
+
     public function list(): void
     {
         try {
