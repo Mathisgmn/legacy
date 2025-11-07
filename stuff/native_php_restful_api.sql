@@ -101,6 +101,8 @@ CREATE TABLE IF NOT EXISTS `game_guess` (
   `game_player_id` int NOT NULL,
   `guess_word` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
   `result_pattern` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `attempt_number` int NOT NULL,
+  `is_correct` tinyint(1) NOT NULL DEFAULT '0',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `game_id` (`game_id`),

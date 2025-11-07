@@ -36,7 +36,7 @@ MCD des entités `user` et `refresh_token` avec spécification des types MySQL.
 | --- | --- | --- |
 | `game` | `target_word`, `status`, `created_at`, `updated_at`, `completed_at` | Stocke l'état courant d'une partie (mot cible, statut métier et horodatages de suivi). |
 | `game_player` | `game_id`, `user_id`, `role`, `turn_order`, `joined_at` | Associe les joueurs à une partie, précise leur rôle (`initiator` ou `invitee`) et l'ordre de passage. |
-| `game_guess` | `game_id`, `game_player_id`, `guess_word`, `result_pattern`, `created_at` | Journalise chaque proposition avec son auteur et le retour lettre par lettre. |
+| `game_guess` | `game_id`, `game_player_id`, `guess_word`, `result_pattern`, `attempt_number`, `is_correct`, `created_at` | Journalise chaque proposition avec son auteur, le retour lettre par lettre et le rang de l'essai. |
 
 **Colonnes supplémentaires en production**
 
