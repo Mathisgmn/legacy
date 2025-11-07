@@ -69,7 +69,14 @@ class GameController
 
             $this->game->addPlayer($gameId, $opponentId);
 
+            $invitation = $this->gameInvitation->send($gameId, $inviterId, $opponentId);
+            if (!$invitation) {
+                sendResponseCustom('Unable to create invitation for this game', null, 'Error', 500);
+                return;
+            }
+
             $state = $this->buildGameState($gameId);
+            $state['invitation'] = $invitation;
             sendResponseCustom('Game invitation created', $state, 'Success', 201);
         } catch (Exception $e) {
             logWithDate('Game creation failed', $e->getMessage());

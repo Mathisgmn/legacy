@@ -1,5 +1,8 @@
 <?php
 
+require_once dirname(__DIR__) . '/Core/Database.php';
+require_once dirname(__DIR__, 2) . '/helpers/global_helper.php';
+
 class GameInvitation
 {
     public const STATUS_PENDING = 'pending';

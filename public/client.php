@@ -389,18 +389,6 @@
     }
 
     function sendInvitation(opponentId) {
-        const wordPrompt = window.prompt('Choisissez un mot secret de 6 lettres :');
-        if (wordPrompt === null) {
-            $('#onlinePlayersMsg').text('Invitation annulée.');
-            return;
-        }
-
-        const sanitizedWord = (wordPrompt || '').replace(/\s+/g, '').toUpperCase();
-        if (!/^[A-Z]{6}$/.test(sanitizedWord)) {
-            $('#onlinePlayersMsg').text('Le mot secret doit contenir exactement 6 lettres (A-Z).');
-            return;
-        }
-
         $('#onlinePlayersMsg').text('Création de la partie...');
 
         $.ajax({
@@ -410,7 +398,7 @@
                 'Authorization': 'Bearer ' + getStoredToken(),
                 'Content-Type': 'application/json',
             },
-            data: JSON.stringify({ opponent_id: opponentId, target_word: sanitizedWord }),
+            data: JSON.stringify({ opponent_id: opponentId }),
             processData: false,
             xhrFields: {
                 withCredentials: true,
@@ -425,34 +413,15 @@
                     return;
                 }
 
-                $('#onlinePlayersMsg').text('Invitation en cours...');
+                const invitation = creationResponse.data?.invitation;
+                if (!invitation) {
+                    $('#onlinePlayersMsg').text('Partie créée mais aucune invitation enregistrée.');
+                    return;
+                }
 
-                $.ajax({
-                    url: `${API_BASE}/game/${createdGameId}/invite`,
-                    method: 'POST',
-                    headers: {
-                        'Authorization': 'Bearer ' + getStoredToken(),
-                        'Content-Type': 'application/json',
-                    },
-                    data: JSON.stringify({ target_user_id: opponentId, action: 'send' }),
-                    processData: false,
-                    xhrFields: {
-                        withCredentials: true,
-                    },
-                    success: function (response) {
-                        $('#onlinePlayersMsg').text('Invitation envoyée.');
-                        const maybeGameId = response.data?.game_id
-                            || response.data?.game?.id
-                            || createdGameId;
-                        if (maybeGameId) {
-                            setCurrentGame(maybeGameId);
-                        }
-                    },
-                    error: function (xhr) {
-                        const message = handleAjaxError(xhr, "Impossible d'envoyer l'invitation.");
-                        $('#onlinePlayersMsg').text(message);
-                    }
-                });
+                $('#onlinePlayersMsg').text('Invitation envoyée.');
+                setCurrentGame(createdGameId);
+                fetchInvitations();
             },
             error: function (xhr) {
                 const message = handleAjaxError(xhr, 'Impossible de créer la partie.');
