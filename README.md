@@ -41,7 +41,7 @@ MCD des entités `user` et `refresh_token` avec spécification des types MySQL.
 **Colonnes supplémentaires en production**
 
 - `user.last_connected_at` : Date et heure de la dernière connexion de l'utilisateur, utilisée pour calculer l'état « en ligne » affiché côté client.
-- `user_presence.status` / `user_presence.last_connected_at` : Suivi de la disponibilité côté serveur. Les entrées expirent après 15 secondes d'inactivité par défaut (paramétrable via `USER_PRESENCE_TTL`).
+- `user_presence.status` / `user_presence.last_connected_at` : Suivi de la disponibilité côté serveur. Les entrées expirent après 15 secondes d'inactivité par défaut (paramétrable via `USER_PRESENCE_TTL`). Les horodatages sont stockés en UTC pour fiabiliser l'expiration.
 
 ## _Endpoints_ disponibles
 

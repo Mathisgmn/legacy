@@ -129,7 +129,7 @@ CREATE TABLE IF NOT EXISTS `user` (
   `email` varchar(250) COLLATE utf8mb4_unicode_ci NOT NULL,
   `password` varchar(250) COLLATE utf8mb4_unicode_ci NOT NULL,
   `created_at` datetime NOT NULL,
-  `last_connected_at` datetime DEFAULT NULL,
+  `last_connected_at` datetime DEFAULT NULL COMMENT 'Stocké en UTC',
   `deactivated_at` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `pseudo` (`pseudo`),
@@ -146,7 +146,7 @@ DROP TABLE IF EXISTS `user_presence`;
 CREATE TABLE IF NOT EXISTS `user_presence` (
   `user_id` int NOT NULL,
   `status` enum('offline','online','available','in_game') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'offline',
-  `last_connected_at` datetime DEFAULT NULL,
+  `last_connected_at` datetime DEFAULT NULL COMMENT 'Stocké en UTC',
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`user_id`),
   CONSTRAINT `user_presence_user_fk` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
