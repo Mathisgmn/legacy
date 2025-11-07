@@ -547,6 +547,7 @@
                 const invitations = response.data || [];
                 const list = $('#invitationList');
                 list.empty();
+                $('#invitationMsg').text('');
 
                 if (!invitations.length) {
                     list.append('<li>Aucune invitation en attente.</li>');

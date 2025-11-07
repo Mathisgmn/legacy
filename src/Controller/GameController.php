@@ -3,19 +3,35 @@
 require_once __DIR__ . '/../Model/Game.php';
 require_once __DIR__ . '/../Model/GameGuess.php';
 require_once __DIR__ . '/../Model/User.php';
+require_once __DIR__ . '/../Model/GameInvitation.php';
 
 class GameController
 {
     private Game $game;
     private GameGuess $gameGuess;
     private User $userModel;
+    private GameInvitation $gameInvitation;
     private int $timeLimitSeconds = 8;
 
-    public function __construct(?Game $game = null, ?GameGuess $gameGuess = null, ?User $userModel = null)
+    private const FALLBACK_WORDS = [
+        'SECRET',
+        'PUZZLE',
+        'GALAXY',
+        'ORANGE',
+        'PLANET',
+        'MOBILE',
+        'BRIQUE',
+        'MOTEUR',
+        'FLECHE',
+        'JARDIN',
+    ];
+
+    public function __construct(?Game $game = null, ?GameGuess $gameGuess = null, ?User $userModel = null, ?GameInvitation $gameInvitation = null)
     {
         $this->game = $game ?? new Game();
         $this->gameGuess = $gameGuess ?? new GameGuess();
         $this->userModel = $userModel ?? new User();
+        $this->gameInvitation = $gameInvitation ?? new GameInvitation();
     }
 
     public function create(int $inviterId): void
@@ -23,7 +39,10 @@ class GameController
         try {
             $data = $this->getRequestData();
             $opponentId = (int) ($data['opponent_id'] ?? 0);
-            $targetWord = strtoupper(trim($data['target_word'] ?? ''));
+            $targetWordCandidate = strtoupper(trim((string) ($data['target_word'] ?? '')));
+            $targetWord = self::isValidWord($targetWordCandidate)
+                ? $targetWordCandidate
+                : $this->generateTargetWord();
 
             if ($opponentId <= 0 || $opponentId === $inviterId) {
                 sendResponseCustom('Invalid opponent provided', null, 'Error', 400);
@@ -31,7 +50,8 @@ class GameController
             }
 
             if (!self::isValidWord($targetWord)) {
-                sendResponseCustom('Target word must contain exactly 6 letters', null, 'Error', 400);
+                logWithDate('Game creation failed', 'No valid target word could be determined');
+                sendResponse500();
                 return;
             }
 
@@ -80,6 +100,8 @@ class GameController
                 sendResponse500();
                 return;
             }
+
+            $this->gameInvitation->start($gameId, (int) $game['inviter_id'], (int) $playerId);
 
             $state = $this->buildGameState($gameId);
             sendResponseCustom('Game accepted', $state);
@@ -299,6 +321,24 @@ class GameController
         }
 
         return [];
+    }
+
+    private function generateTargetWord(): string
+    {
+        $words = self::FALLBACK_WORDS;
+
+        if (!$words) {
+            return 'SECRET';
+        }
+
+        $word = $words[array_rand($words)] ?? 'SECRET';
+        $word = strtoupper($word);
+
+        if (!self::isValidWord($word)) {
+            return 'SECRET';
+        }
+
+        return $word;
     }
 
     private function buildGameState(int $gameId): array

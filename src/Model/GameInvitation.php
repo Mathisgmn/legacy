@@ -99,6 +99,62 @@ class GameInvitation
         }
     }
 
+    /**
+     * @param int $recipientId
+     * @param array<int, string> $statuses
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function listForRecipient(int $recipientId, array $statuses = []): array
+    {
+        try {
+            throwDbNullConnection($this->conn);
+
+            $query = 'SELECT gi.*, '
+                . 'sender.pseudo AS sender_pseudo, '
+                . 'sender.email AS sender_email, '
+                . 'sender.first_name AS sender_first_name, '
+                . 'sender.last_name AS sender_last_name, '
+                . 'game.status AS game_status '
+                . 'FROM game_invitation gi '
+                . 'INNER JOIN user sender ON sender.id = gi.sender_id '
+                . 'LEFT JOIN game ON game.id = gi.game_id '
+                . 'WHERE gi.recipient_id = :recipient_id';
+
+            $bindings = [':recipient_id' => $recipientId];
+
+            if ($statuses) {
+                $placeholders = [];
+                foreach ($statuses as $index => $status) {
+                    $placeholder = ':status_' . $index;
+                    $placeholders[] = $placeholder;
+                    $bindings[$placeholder] = $status;
+                }
+                $query .= ' AND gi.status IN (' . implode(',', $placeholders) . ')';
+            }
+
+            $query .= ' ORDER BY gi.updated_at DESC';
+
+            $stmt = $this->conn->prepare($query);
+            foreach ($bindings as $placeholder => $value) {
+                if ($placeholder === ':recipient_id') {
+                    $stmt->bindValue($placeholder, $value, PDO::PARAM_INT);
+                } else {
+                    $stmt->bindValue($placeholder, $value);
+                }
+            }
+
+            $stmt->execute();
+
+            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            return $result ?: [];
+        } catch (PDOException|Exception $e) {
+            logWithDate('Invitation list failed', $e->getMessage());
+            return [];
+        }
+    }
+
     private function updateStatus(int $gameId, int $senderId, int $recipientId, string $status): ?array
     {
         try {
