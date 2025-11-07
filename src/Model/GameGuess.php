@@ -21,13 +21,13 @@ class GameGuess
         try {
             throwDbNullConnection($this->conn);
 
-            $query = 'INSERT INTO game_guess (game_id, player_id, guess_word, result_pattern, attempt_number, is_correct, created_at) ';
-            $query .= 'VALUES (:game_id, :player_id, :guess_word, :result_pattern, :attempt_number, :is_correct, NOW())';
+            $query = 'INSERT INTO game_guess (game_id, game_player_id, guess_word, result_pattern, attempt_number, is_correct, created_at) ';
+            $query .= 'VALUES (:game_id, :game_player_id, :guess_word, :result_pattern, :attempt_number, :is_correct, NOW())';
 
             $stmt = $this->conn->prepare($query);
             $encodedPattern = json_encode($resultPattern, JSON_THROW_ON_ERROR);
             $stmt->bindParam(':game_id', $gameId, PDO::PARAM_INT);
-            $stmt->bindParam(':player_id', $playerId, PDO::PARAM_INT);
+            $stmt->bindParam(':game_player_id', $playerId, PDO::PARAM_INT);
             $stmt->bindParam(':guess_word', $guessWord);
             $stmt->bindParam(':result_pattern', $encodedPattern);
             $stmt->bindParam(':attempt_number', $attemptNumber, PDO::PARAM_INT);
@@ -48,7 +48,7 @@ class GameGuess
         try {
             throwDbNullConnection($this->conn);
 
-            $query = 'SELECT id, game_id, player_id, guess_word, result_pattern, attempt_number, is_correct, created_at ';
+            $query = 'SELECT id, game_id, game_player_id AS player_id, guess_word, result_pattern, attempt_number, is_correct, created_at ';
             $query .= 'FROM game_guess WHERE game_id = :game_id ORDER BY attempt_number ASC';
             $stmt = $this->conn->prepare($query);
             $stmt->bindParam(':game_id', $gameId, PDO::PARAM_INT);
@@ -102,7 +102,7 @@ class GameGuess
         try {
             throwDbNullConnection($this->conn);
 
-            $query = 'SELECT id, game_id, player_id, guess_word, result_pattern, attempt_number, is_correct, created_at ';
+            $query = 'SELECT id, game_id, game_player_id AS player_id, guess_word, result_pattern, attempt_number, is_correct, created_at ';
             $query .= 'FROM game_guess WHERE game_id = :game_id ORDER BY attempt_number DESC LIMIT 1';
             $stmt = $this->conn->prepare($query);
             $stmt->bindParam(':game_id', $gameId, PDO::PARAM_INT);
