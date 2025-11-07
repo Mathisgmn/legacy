@@ -389,25 +389,73 @@
     }
 
     function sendInvitation(opponentId) {
+        const wordPrompt = window.prompt('Choisissez un mot secret de 6 lettres :');
+        if (wordPrompt === null) {
+            $('#onlinePlayersMsg').text('Invitation annulée.');
+            return;
+        }
+
+        const sanitizedWord = (wordPrompt || '').replace(/\s+/g, '').toUpperCase();
+        if (!/^[A-Z]{6}$/.test(sanitizedWord)) {
+            $('#onlinePlayersMsg').text('Le mot secret doit contenir exactement 6 lettres (A-Z).');
+            return;
+        }
+
+        $('#onlinePlayersMsg').text('Création de la partie...');
+
         $.ajax({
-            url: `${API_BASE}/game/invite`,
+            url: `${API_BASE}/game`,
             method: 'POST',
             headers: {
                 'Authorization': 'Bearer ' + getStoredToken(),
+                'Content-Type': 'application/json',
             },
-            data: { opponent_id: opponentId },
+            data: JSON.stringify({ opponent_id: opponentId, target_word: sanitizedWord }),
+            processData: false,
             xhrFields: {
                 withCredentials: true,
             },
-            success: function (response) {
-                $('#onlinePlayersMsg').text('Invitation envoyée.');
-                const maybeGameId = response.data?.game_id || response.data?.id;
-                if (maybeGameId) {
-                    setCurrentGame(maybeGameId);
+            success: function (creationResponse) {
+                const createdGameId = creationResponse.data?.game?.id
+                    || creationResponse.data?.game_id
+                    || creationResponse.data?.id;
+
+                if (!createdGameId) {
+                    $('#onlinePlayersMsg').text('Partie créée mais identifiant introuvable.');
+                    return;
                 }
+
+                $('#onlinePlayersMsg').text('Invitation en cours...');
+
+                $.ajax({
+                    url: `${API_BASE}/game/${createdGameId}/invite`,
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + getStoredToken(),
+                        'Content-Type': 'application/json',
+                    },
+                    data: JSON.stringify({ target_user_id: opponentId, action: 'send' }),
+                    processData: false,
+                    xhrFields: {
+                        withCredentials: true,
+                    },
+                    success: function (response) {
+                        $('#onlinePlayersMsg').text('Invitation envoyée.');
+                        const maybeGameId = response.data?.game_id
+                            || response.data?.game?.id
+                            || createdGameId;
+                        if (maybeGameId) {
+                            setCurrentGame(maybeGameId);
+                        }
+                    },
+                    error: function (xhr) {
+                        const message = handleAjaxError(xhr, "Impossible d'envoyer l'invitation.");
+                        $('#onlinePlayersMsg').text(message);
+                    }
+                });
             },
             error: function (xhr) {
-                const message = handleAjaxError(xhr, "Impossible d'envoyer l'invitation.");
+                const message = handleAjaxError(xhr, 'Impossible de créer la partie.');
                 $('#onlinePlayersMsg').text(message);
             }
         });
@@ -509,9 +557,10 @@
                     const listItem = $('<li>').addClass('inline-actions');
                     const from = invitation.from?.pseudo || invitation.from?.email || `Joueur #${invitation.from_id || invitation.id}`;
                     listItem.append($('<span>').text(`Invitation de ${from}`));
+                    const targetGameId = invitation.game_id || invitation.id;
                     const acceptButton = $('<button type="button">').text('Accepter');
                     acceptButton.on('click', function () {
-                        acceptInvitation(invitation.id);
+                        acceptInvitation(targetGameId);
                     });
                     listItem.append(acceptButton);
                     list.append(listItem);
