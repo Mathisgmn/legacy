@@ -94,7 +94,7 @@ class User
             $query .= 'FROM user ';
             $query .= 'JOIN refresh_token ';
             $query .= 'ON user.id = refresh_token.user_id ';
-            $query .= 'WHERE revoked = 0';
+            $query .= 'WHERE revoked = 0 AND expires_at > NOW()';
             $stmt = $this->conn->prepare($query);
             $stmt->execute();
 

@@ -15,10 +15,26 @@ function base64UrlDecode(string $data): string
     return base64_decode($b64);
 }
 
-function authenticateRequest(JwtService $jwtService): ?array
+function authenticateRequest(JwtService $jwtService, $userController = null): ?array
 {
     $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
     $accessToken = str_replace('Bearer ', '', $authHeader);
 
-    return $jwtService->verifyToken($accessToken);
+    $verification = $jwtService->verifyToken($accessToken);
+
+    if ($verification['status'] === 'valid') {
+        return $verification['payload'];
+    }
+
+    if ($verification['status'] === 'expired' && $userController) {
+        $refreshResult = $userController->refreshAccessTokenFromCookie();
+
+        if ($refreshResult && isset($refreshResult['accessToken'], $refreshResult['payload'])) {
+            header('X-Access-Token: ' . $refreshResult['accessToken']);
+
+            return $refreshResult['payload'];
+        }
+    }
+
+    return null;
 }
