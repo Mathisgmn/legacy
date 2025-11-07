@@ -28,32 +28,6 @@
     --grid-cell-absent: #94a3b8;
 }
 
-[data-theme="dark"] {
-    color-scheme: dark;
-    --bg: #0b1120;
-    --surface: #111a2e;
-    --surface-strong: #192338;
-    --border: rgba(148, 163, 184, 0.16);
-    --text: #e2e8f0;
-    --text-muted: #94a3b8;
-    --shadow-sm: 0 18px 40px rgba(2, 6, 23, 0.35);
-    --motus-board-bg: linear-gradient(135deg, rgba(129, 140, 248, 0.18), rgba(129, 140, 248, 0.04));
-    --motus-board-border: rgba(148, 163, 184, 0.18);
-    --motus-board-glow: 0 24px 55px rgba(15, 23, 42, 0.55);
-    --motus-cell-border: rgba(148, 163, 184, 0.22);
-    --motus-cell-shadow: 0 12px 28px rgba(2, 6, 23, 0.45);
-    --accent: #818cf8;
-    --accent-contrast: #0b1120;
-    --accent-soft: rgba(129, 140, 248, 0.22);
-    --success: #4ade80;
-    --warning: #fbbf24;
-    --danger: #f87171;
-    --grid-cell-bg: #1f2937;
-    --grid-cell-muted: #334155;
-    --grid-cell-correct: #22c55e;
-    --grid-cell-present: #eab308;
-    --grid-cell-absent: #475569;
-}
 
 * {
     box-sizing: border-box;
@@ -89,29 +63,44 @@ body {
     font-weight: var(--font-weight-semibold);
 }
 
-
-.theme-toggle {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.55rem 1rem;
-    border-radius: 999px;
-    border: 1px solid var(--border);
-    background: var(--surface);
-    color: inherit;
-    cursor: pointer;
-    transition: background 0.25s ease, border-color 0.25s ease;
+.hero {
+    display: grid;
+    gap: 0.75rem;
 }
 
-.theme-toggle:hover,
-.theme-toggle:focus-visible {
-    background: var(--surface-strong);
-    border-color: var(--accent);
+.hero p {
+    margin: 0;
+    font-size: clamp(1.05rem, 1vw + 0.9rem, 1.25rem);
+    color: var(--text-muted);
 }
 
-.theme-toggle .toggle-icon {
-    font-size: 1.15rem;
+.intro {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 1.05rem;
+    line-height: 1.65;
 }
+
+.auth-grid {
+    display: grid;
+    gap: clamp(1.5rem, 2vw + 1rem, 2.5rem);
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.auth-card {
+    display: grid;
+    gap: clamp(1.25rem, 1.5vw + 0.75rem, 1.75rem);
+}
+
+.auth-card p {
+    margin: 0;
+}
+
+
 
 main.page-content {
     display: grid;

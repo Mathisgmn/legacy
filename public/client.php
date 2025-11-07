@@ -10,92 +10,102 @@
 </head>
 <body>
 <header class="page-header container">
-    <h1>Client jQuery</h1>
-    <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Basculer le mode d'affichage">
-        <span class="toggle-icon" aria-hidden="true">🌙</span>
-        <span class="toggle-label">Mode sombre</span>
-    </button>
+    <div class="hero">
+        <h1>Portail des joueurs</h1>
+        <p>Retrouvez toutes les actions liées à votre compte et rejoignez les parties en direct de Motus.</p>
+    </div>
 </header>
 <main class="container page-content">
 
-    <section id="authentication">
-        <form id="auth-form">
-            <fieldset>
-                <label for="auth-email">Adresse courriel</label>
-                <input type="email" id="auth-email" name="email" required>
-            </fieldset>
-            <fieldset>
-                <label for="auth-password">Mot de passe</label>
-                <input type="password" id="auth-password" name="password" required>
-            </fieldset>
-            <button type="submit">Se connecter</button>
-        </form>
-
-        <button id="logout-button" type="button" style="display: none;">Se déconnecter</button>
-
-        <p id="auth-message"></p>
+    <section class="intro">
+        <p>
+            Connectez-vous pour poursuivre vos parties en cours ou inscrivez-vous pour créer votre profil.
+            Une fois authentifié, vous pourrez défier d'autres joueurs sans attendre.
+        </p>
     </section>
 
-    <section id="registration">
-        <h2>Créer un compte</h2>
-        <form id="register-form">
-            <fieldset>
-                <label for="register-first-name">Prénom</label>
-                <input type="text" id="register-first-name" name="first_name" required>
-            </fieldset>
-            <fieldset>
-                <label for="register-last-name">Nom</label>
-                <input type="text" id="register-last-name" name="last_name" required>
-            </fieldset>
-            <fieldset>
-                <label for="register-pseudo">Pseudo</label>
-                <input type="text" id="register-pseudo" name="pseudo" required>
-            </fieldset>
-            <fieldset>
-                <label for="register-birth-date">Date de naissance</label>
-                <input type="date" id="register-birth-date" name="birth_date" required>
-            </fieldset>
-            <fieldset>
-                <label for="register-gender">Genre</label>
-                <select id="register-gender" name="gender" required>
-                    <option value="" selected disabled>-- Sélectionnez --</option>
-                    <option value="m">Masculin</option>
-                    <option value="f">Féminin</option>
-                    <option value="o">Autre</option>
-                </select>
-            </fieldset>
-            <fieldset>
-                <label for="register-avatar">Avatar</label>
-                <input type="text" id="register-avatar" name="avatar" required>
-            </fieldset>
-            <fieldset>
-                <label for="register-email">Adresse courriel</label>
-                <input type="email" id="register-email" name="email" required>
-            </fieldset>
-            <fieldset>
-                <label for="register-password">Mot de passe</label>
-                <input type="password" id="register-password" name="password" required>
-            </fieldset>
-            <button type="submit">Créer le compte</button>
-        </form>
-        <p id="register-message"></p>
+    <section class="grid auth-grid" id="account-actions">
+        <article id="authentication" class="auth-card">
+            <h2>Connexion rapide</h2>
+            <form id="auth-form">
+                <fieldset>
+                    <label for="auth-email">Adresse courriel</label>
+                    <input type="email" id="auth-email" name="email" required>
+                </fieldset>
+                <fieldset>
+                    <label for="auth-password">Mot de passe</label>
+                    <input type="password" id="auth-password" name="password" required>
+                </fieldset>
+                <button type="submit">Se connecter</button>
+            </form>
+
+            <button id="logout-button" type="button" style="display: none;">Quitter la session</button>
+
+            <p id="auth-message"></p>
+        </article>
+
+        <article id="registration" class="auth-card">
+            <h2>Créer un nouveau profil</h2>
+            <form id="register-form">
+                <fieldset>
+                    <label for="register-first-name">Prénom</label>
+                    <input type="text" id="register-first-name" name="first_name" required>
+                </fieldset>
+                <fieldset>
+                    <label for="register-last-name">Nom</label>
+                    <input type="text" id="register-last-name" name="last_name" required>
+                </fieldset>
+                <fieldset>
+                    <label for="register-pseudo">Pseudo</label>
+                    <input type="text" id="register-pseudo" name="pseudo" required>
+                </fieldset>
+                <fieldset>
+                    <label for="register-birth-date">Date de naissance</label>
+                    <input type="date" id="register-birth-date" name="birth_date" required>
+                </fieldset>
+                <fieldset>
+                    <label for="register-gender">Genre</label>
+                    <select id="register-gender" name="gender" required>
+                        <option value="" selected disabled>-- Sélectionnez --</option>
+                        <option value="m">Masculin</option>
+                        <option value="f">Féminin</option>
+                        <option value="o">Autre</option>
+                    </select>
+                </fieldset>
+                <fieldset>
+                    <label for="register-avatar">Avatar</label>
+                    <input type="text" id="register-avatar" name="avatar" required>
+                </fieldset>
+                <fieldset>
+                    <label for="register-email">Adresse courriel</label>
+                    <input type="email" id="register-email" name="email" required>
+                </fieldset>
+                <fieldset>
+                    <label for="register-password">Mot de passe</label>
+                    <input type="password" id="register-password" name="password" required>
+                </fieldset>
+                <button type="submit">Créer le compte</button>
+            </form>
+            <p id="register-message"></p>
+        </article>
     </section>
 
     <section id="game-selector">
-        <h2>Jeux disponibles</h2>
+        <h2>Prêt pour Motus ?</h2>
         <article class="game-card" aria-labelledby="motus-card-title">
-            <h3 id="motus-card-title">Motus (multijoueur)</h3>
+            <h3 id="motus-card-title">Motus multijoueur</h3>
             <p>
-                Affrontez un autre joueur en proposant des mots de six lettres tour à tour.
-                Les lettres bien placées s'affichent en rouge, les lettres mal placées en jaune.
+                Invitez un autre joueur à deviner un mot de six lettres en alternant vos propositions.
+                Les lettres bien placées passent en rouge tandis que celles à replacer deviennent jaunes.
             </p>
-            <button type="button" id="open-motus-button" disabled>Accéder à Motus</button>
-            <p class="game-card-status" id="motus-card-status">Connectez-vous pour lancer une partie de Motus.</p>
+            <button type="button" id="open-motus-button" disabled>Ouvrir Motus</button>
+            <p class="game-card-status" id="motus-card-status">Identifiez-vous pour lancer une nouvelle partie.</p>
         </article>
     </section>
 
     <section id="profile-section" style="display: none;">
-        <h2>Modifier mon compte</h2>
+        <h2>Gestion du profil</h2>
+        <p>Actualisez votre pseudo, votre avatar ou votre genre dès que vous le souhaitez.</p>
         <form id="profile-form">
             <fieldset>
                 <label for="profile-pseudo">Pseudo</label>
@@ -123,8 +133,8 @@
 
     <section id="motus-wrapper">
         <section id="lobby-section">
-            <h2>Joueurs disponibles</h2>
-            <p id="lobby-info">Sélectionnez un joueur connecté pour démarrer une partie.</p>
+            <h2>Joueurs en ligne</h2>
+            <p id="lobby-info">Choisissez un adversaire connecté pour démarrer une manche.</p>
             <ul id="available-players-list"></ul>
             <p id="lobby-message"></p>
         </section>
@@ -140,7 +150,7 @@
             <div class="motus-board" id="game-grid"></div>
             <form id="guess-form">
                 <fieldset>
-                    <label for="guess-word">Votre proposition (6 lettres)</label>
+                    <label for="guess-word">Votre mot (6 lettres)</label>
                     <input type="text" id="guess-word" name="guess-word" maxlength="6" minlength="6" autocomplete="off"
                            required>
                 </fieldset>
@@ -152,33 +162,6 @@
     </section>
 </main>
 <script>
-    const THEME_STORAGE_KEY = 'legacybeat-theme';
-    const rootElement = document.body;
-    const themeToggleButton = document.getElementById('theme-toggle');
-
-    function applyTheme(theme) {
-        const normalizedTheme = theme === 'dark' ? 'dark' : 'light';
-        rootElement.setAttribute('data-theme', normalizedTheme);
-        localStorage.setItem(THEME_STORAGE_KEY, normalizedTheme);
-
-        const icon = normalizedTheme === 'dark' ? '☀️' : '🌙';
-        const label = normalizedTheme === 'dark' ? 'Mode clair' : 'Mode sombre';
-
-        themeToggleButton.querySelector('.toggle-icon').textContent = icon;
-        themeToggleButton.querySelector('.toggle-label').textContent = label;
-    }
-
-    function toggleTheme() {
-        const currentTheme = rootElement.getAttribute('data-theme');
-        applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
-    }
-
-    const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    applyTheme(savedTheme || (prefersDark ? 'dark' : 'light'));
-
-    themeToggleButton.addEventListener('click', toggleTheme);
-
     let dataSample = {
         first_name: "Adrien",
         last_name: "Girard",
