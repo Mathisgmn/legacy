@@ -90,18 +90,6 @@
         </article>
     </section>
 
-    <section id="game-selector">
-        <h2>Prêt pour Motus ?</h2>
-        <article class="game-card" aria-labelledby="motus-card-title">
-            <h3 id="motus-card-title">Motus multijoueur</h3>
-            <p>
-                Invitez un autre joueur à deviner un mot de six lettres en alternant vos propositions.
-                Les lettres bien placées passent en rouge tandis que celles à replacer deviennent jaunes.
-            </p>
-            <button type="button" id="open-motus-button" disabled>Ouvrir Motus</button>
-            <p class="game-card-status" id="motus-card-status">Identifiez-vous pour lancer une nouvelle partie.</p>
-        </article>
-    </section>
 
     <section id="profile-section" style="display: none;">
         <h2>Gestion du profil</h2>
