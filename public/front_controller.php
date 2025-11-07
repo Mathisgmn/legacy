@@ -16,9 +16,11 @@ require_once __DIR__ . '/../helpers/http_response_helper.php';
 require_once __DIR__ . '/../helpers/jwt_helper.php';
 require_once __DIR__ . '/../src/Security/JwtService.php';
 require_once __DIR__ . '/../src/Controller/UserController.php';
+require_once __DIR__ . '/../src/Controller/GameController.php';
 
 $jwtService = new JwtService();
 $userController = new UserController($jwtService);
+$gameController = new GameController();
 
 $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $requestMethod = $_SERVER['REQUEST_METHOD'];
@@ -77,6 +79,36 @@ if (!str_starts_with($requestUri, '/api/')) {
             default:
                 sendResponse405();
                 break;
+        }
+    } elseif ($requestUri === '/api/game' && $requestMethod === 'POST') {
+        $gameController->create((int) $userId);
+    } elseif (preg_match('#^/api/game/(\d+)/accept$#', $requestUri, $matches)) {
+        $gameId = (int) $matches[1];
+        if ($requestMethod === 'POST') {
+            $gameController->accept($gameId, (int) $userId);
+        } else {
+            sendResponse405();
+        }
+    } elseif (preg_match('#^/api/game/(\d+)/guess$#', $requestUri, $matches)) {
+        $gameId = (int) $matches[1];
+        if ($requestMethod === 'POST') {
+            $gameController->submitGuess($gameId, (int) $userId);
+        } else {
+            sendResponse405();
+        }
+    } elseif (preg_match('#^/api/game/(\d+)/timeout$#', $requestUri, $matches)) {
+        $gameId = (int) $matches[1];
+        if ($requestMethod === 'POST') {
+            $gameController->timeout($gameId, (int) $userId);
+        } else {
+            sendResponse405();
+        }
+    } elseif (preg_match('#^/api/game/(\d+)$#', $requestUri, $matches)) {
+        $gameId = (int) $matches[1];
+        if ($requestMethod === 'GET') {
+            $gameController->show($gameId, (int) $userId);
+        } else {
+            sendResponse405();
         }
     } elseif (preg_match('#^/api/user/(\d+)$#', $requestUri, $matches)) {
         $requestedUserId = (int) $matches[1];
