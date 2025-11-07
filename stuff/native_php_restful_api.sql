@@ -136,6 +136,22 @@ CREATE TABLE IF NOT EXISTS `user` (
   UNIQUE KEY `email` (`email`)
 ) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `user_presence`
+--
+
+DROP TABLE IF EXISTS `user_presence`;
+CREATE TABLE IF NOT EXISTS `user_presence` (
+  `user_id` int NOT NULL,
+  `status` enum('offline','online','available','in_game') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'offline',
+  `last_connected_at` datetime DEFAULT NULL,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`user_id`),
+  CONSTRAINT `user_presence_user_fk` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 --
 -- Déchargement des données de la table `user`
 --

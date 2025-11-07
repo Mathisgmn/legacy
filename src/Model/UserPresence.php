@@ -84,12 +84,12 @@ class UserPresence
         }
     }
 
-    public function expireInactive(int $timeoutSeconds): void
+    public function expireInactive(int $timeoutSeconds, ?string $threshold = null): void
     {
         try {
             throwDbNullConnection($this->conn);
 
-            $threshold = date('Y-m-d H:i:s', time() - $timeoutSeconds);
+            $thresholdDate = $threshold ?? $this->computeThresholdDate($timeoutSeconds);
 
             $query = 'UPDATE user_presence '
                 . 'SET status = :offline '
@@ -100,7 +100,7 @@ class UserPresence
             $stmt = $this->conn->prepare($query);
             $offline = self::STATUS_OFFLINE;
             $stmt->bindParam(':offline', $offline);
-            $stmt->bindParam(':threshold', $threshold);
+            $stmt->bindParam(':threshold', $thresholdDate);
             $stmt->execute();
         } catch (PDOException|Exception $e) {
             logWithDate('Presence expiration failed', $e->getMessage());
@@ -112,18 +112,23 @@ class UserPresence
         try {
             throwDbNullConnection($this->conn);
 
-            $this->expireInactive($timeoutSeconds);
+            $threshold = $this->computeThresholdDate($timeoutSeconds);
+            $this->expireInactive($timeoutSeconds, $threshold);
 
             $query = 'SELECT u.id, u.pseudo, up.status, up.last_connected_at '
                 . 'FROM user_presence up '
                 . 'JOIN user u ON u.id = up.user_id '
-                . "WHERE up.status IN ('online', 'available')";
+                . "WHERE up.status IN ('online', 'available') "
+                . 'AND up.last_connected_at IS NOT NULL '
+                . 'AND up.last_connected_at >= :threshold';
 
             if ($excludeUserId !== null) {
                 $query .= ' AND up.user_id <> :exclude_user_id';
             }
 
             $stmt = $this->conn->prepare($query);
+
+            $stmt->bindParam(':threshold', $threshold);
 
             if ($excludeUserId !== null) {
                 $stmt->bindParam(':exclude_user_id', $excludeUserId, PDO::PARAM_INT);
@@ -136,6 +141,13 @@ class UserPresence
             logWithDate('Presence fetch failed', $e->getMessage());
             return [];
         }
+    }
+
+    private function computeThresholdDate(int $timeoutSeconds): string
+    {
+        $seconds = max($timeoutSeconds, 1);
+
+        return date('Y-m-d H:i:s', time() - $seconds);
     }
 
     private function isValidStatus(string $status): bool
