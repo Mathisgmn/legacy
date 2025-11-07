@@ -28,15 +28,11 @@ class JwtService
         return "$headerEncoded.$payloadEncoded.$signatureEncoded";
     }
 
-    public function verifyToken(string $token): array
+    public function verifyToken(string $token): ?array
     {
-        if ($token === '') {
-            return ['status' => 'invalid', 'payload' => null];
-        }
-
         $parts = explode('.', $token);
         if (count($parts) !== 3) {
-            return ['status' => 'invalid', 'payload' => null];
+            return null;
         }
 
         [$headerEncoded, $payloadEncoded, $signatureEncoded] = $parts;
@@ -46,19 +42,19 @@ class JwtService
         );
 
         if (!hash_equals($signatureCheck, $signatureEncoded)) {
-            return ['status' => 'invalid', 'payload' => null];
+            return null;
         }
 
         $payload = json_decode(base64UrlDecode($payloadEncoded), true);
         if (!is_array($payload)) {
-            return ['status' => 'invalid', 'payload' => null];
+            return null;
         }
 
         $now = time();
         if (isset($payload['exp']) && $payload['exp'] < $now) {
-            return ['status' => 'expired', 'payload' => $payload];
+            return null;
         }
 
-        return ['status' => 'valid', 'payload' => $payload];
+        return $payload;
     }
 }

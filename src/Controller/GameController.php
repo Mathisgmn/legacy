@@ -1,381 +1,246 @@
 <?php
 
 require_once __DIR__ . '/../Model/Game.php';
-require_once __DIR__ . '/../Model/GameGuess.php';
-require_once __DIR__ . '/../Model/User.php';
-require_once __DIR__ . '/../Model/GameInvitation.php';
+require_once __DIR__ . '/../Model/UserStatus.php';
+require_once __DIR__ . '/../Core/WordProvider.php';
+require_once __DIR__ . '/../../helpers/game_helper.php';
 
 class GameController
 {
     private Game $game;
-    private GameGuess $gameGuess;
-    private User $userModel;
-    private GameInvitation $gameInvitation;
-    private int $timeLimitSeconds = 8;
+    private UserStatus $userStatus;
+    private const int WORD_LENGTH = 6;
+    private const int MAX_ATTEMPTS = 8;
+    private const int TURN_DURATION = 8;
 
-    private const FALLBACK_WORDS = [
-        'SECRET',
-        'PUZZLE',
-        'GALAXY',
-        'ORANGE',
-        'PLANET',
-        'MOBILE',
-        'BRIQUE',
-        'MOTEUR',
-        'FLECHE',
-        'JARDIN',
-    ];
-
-    public function __construct(?Game $game = null, ?GameGuess $gameGuess = null, ?User $userModel = null, ?GameInvitation $gameInvitation = null)
+    public function __construct()
     {
-        $this->game = $game ?? new Game();
-        $this->gameGuess = $gameGuess ?? new GameGuess();
-        $this->userModel = $userModel ?? new User();
-        $this->gameInvitation = $gameInvitation ?? new GameInvitation();
+        $this->game = new Game();
+        $this->userStatus = new UserStatus();
     }
 
-    public function create(int $inviterId): void
+    public function listAvailablePlayers(int $authenticatedUserId): void
     {
-        try {
-            $data = $this->getRequestData();
-            $opponentId = (int) ($data['opponent_id'] ?? 0);
-            $targetWordCandidate = strtoupper(trim((string) ($data['target_word'] ?? '')));
-            $targetWord = self::isValidWord($targetWordCandidate)
-                ? $targetWordCandidate
-                : $this->generateTargetWord();
-
-            if ($opponentId <= 0 || $opponentId === $inviterId) {
-                sendResponseCustom('Invalid opponent provided', null, 'Error', 400);
-                return;
-            }
-
-            if (!self::isValidWord($targetWord)) {
-                logWithDate('Game creation failed', 'No valid target word could be determined');
-                sendResponse500();
-                return;
-            }
-
-            $opponent = $this->userModel->findById($opponentId);
-            if (!$opponent) {
-                sendResponseCustom('Opponent not found', null, 'Error', 404);
-                return;
-            }
-
-            $gameId = $this->game->createGame($inviterId, $opponentId, $targetWord);
-            if (!$gameId) {
-                sendResponse500();
-                return;
-            }
-
-            $this->game->addPlayer($gameId, $opponentId);
-
-            $invitation = $this->gameInvitation->send($gameId, $inviterId, $opponentId);
-            if (!$invitation) {
-                sendResponseCustom('Unable to create invitation for this game', null, 'Error', 500);
-                return;
-            }
-
-            $state = $this->buildGameState($gameId);
-            $state['invitation'] = $invitation;
-            sendResponseCustom('Game invitation created', $state, 'Success', 201);
-        } catch (Exception $e) {
-            logWithDate('Game creation failed', $e->getMessage());
-            sendResponse500();
-        }
+        $this->userStatus->setOnline($authenticatedUserId);
+        $players = $this->userStatus->listAvailableOpponents($authenticatedUserId);
+        sendResponseCustom('Joueurs connectés récupérés.', $players);
     }
 
-    public function accept(int $gameId, int $playerId): void
+    public function create(int $authenticatedUserId): void
     {
-        try {
-            $game = $this->game->findById($gameId);
-            if (!$game) {
-                sendResponse404();
-                return;
-            }
+        $opponentId = (int)($_POST['opponent_id'] ?? 0);
 
-            if ((int) $game['invitee_id'] !== $playerId) {
-                sendResponseCustom('Only the invited player can accept this game', null, 'Error', 403);
-                return;
-            }
-
-            if ($game['status'] !== 'pending') {
-                sendResponseCustom('Game is not pending invitation', null, 'Error', 400);
-                return;
-            }
-
-            if (!$this->game->acceptGame($gameId)) {
-                sendResponse500();
-                return;
-            }
-
-            $this->gameInvitation->start($gameId, (int) $game['inviter_id'], (int) $playerId);
-
-            $state = $this->buildGameState($gameId);
-            sendResponseCustom('Game accepted', $state);
-        } catch (Exception $e) {
-            logWithDate('Game accept failed', $e->getMessage());
-            sendResponse500();
+        if ($opponentId <= 0) {
+            sendResponseCustom('Aucun adversaire sélectionné.', null, 'Error', 400);
+            return;
         }
+
+        if ($opponentId === $authenticatedUserId) {
+            sendResponseCustom('Vous ne pouvez pas démarrer une partie contre vous-même.', null, 'Error', 400);
+            return;
+        }
+
+        $existingGame = $this->game->findActiveForUser($authenticatedUserId);
+        if ($existingGame) {
+            sendResponseCustom('Vous avez déjà une partie en cours.', null, 'Error', 400);
+            return;
+        }
+
+        if (!$this->userStatus->isUserAvailable($opponentId)) {
+            sendResponseCustom('L’adversaire choisi n’est pas disponible.', null, 'Error', 409);
+            return;
+        }
+
+        $secretWord = WordProvider::randomWord();
+        $createdGame = $this->game->create($authenticatedUserId, $opponentId, $secretWord, self::MAX_ATTEMPTS, self::TURN_DURATION);
+
+        if (!$createdGame) {
+            sendResponseCustom('Impossible de démarrer la partie.', null, 'Error', 500);
+            return;
+        }
+
+        $gameId = (int)$createdGame['id'];
+        $this->userStatus->setInGame($authenticatedUserId, $gameId);
+        $this->userStatus->setInGame($opponentId, $gameId);
+
+        $details = $this->game->findById($gameId);
+        $guesses = $this->game->getGuesses($gameId);
+
+        sendResponseCustom('Partie créée.', $this->formatGame($details, $guesses, $authenticatedUserId));
     }
 
-    public function submitGuess(int $gameId, int $playerId): void
+    public function current(int $authenticatedUserId): void
     {
-        try {
-            $game = $this->game->findById($gameId);
-            if (!$game) {
-                sendResponse404();
-                return;
-            }
+        $activeGame = $this->game->findActiveForUser($authenticatedUserId);
 
-            if (!$this->game->isPlayerInGame($gameId, $playerId)) {
-                sendResponseCustom('You are not allowed to interact with this game', null, 'Error', 403);
-                return;
-            }
-
-            if ($game['status'] !== 'active') {
-                sendResponseCustom('Game is not active', null, 'Error', 400);
-                return;
-            }
-
-            $lastGuessAt = $this->game->getLastGuessAt($gameId);
-            if ($lastGuessAt && (time() - strtotime($lastGuessAt)) > $this->timeLimitSeconds) {
-                $winnerId = ((int) $game['inviter_id'] === $playerId) ? (int) $game['invitee_id'] : (int) $game['inviter_id'];
-                $this->game->markTimeout($gameId, $winnerId);
-                sendResponseCustom('Game has timed out', null, 'Error', 409);
-                return;
-            }
-
-            $data = $this->getRequestData();
-            $guessWord = strtoupper(trim($data['guess'] ?? ''));
-
-            if (!self::isValidWord($guessWord)) {
-                sendResponseCustom('Guess must contain exactly 6 letters', null, 'Error', 400);
-                return;
-            }
-
-            $maxAttempts = isset($game['max_attempts']) ? (int) $game['max_attempts'] : 8;
-            $attemptCount = $this->gameGuess->countGuessesForGame($gameId);
-            if ($attemptCount >= $maxAttempts) {
-                sendResponseCustom('Maximum number of attempts reached', null, 'Error', 409);
-                return;
-            }
-
-            $resultPattern = self::evaluateGuessPattern($game['target_word'], $guessWord);
-            $attemptNumber = $attemptCount + 1;
-            $isCorrect = $this->isGuessCorrect($resultPattern);
-
-            $guessId = $this->gameGuess->storeGuess($gameId, $playerId, $guessWord, $resultPattern, $attemptNumber, $isCorrect);
-            if (!$guessId) {
-                sendResponse500();
-                return;
-            }
-
-            $this->game->updateLastGuessAt($gameId);
-            $this->game->setCurrentTurn($gameId, $attemptNumber + 1);
-
-            $outcome = self::determineStatusFromGuess($isCorrect, $attemptNumber, $maxAttempts);
-            if ($outcome === 'won') {
-                $this->game->markWon($gameId, $playerId);
-            } elseif ($outcome === 'lost') {
-                $this->game->markLost($gameId);
-            }
-
-            $state = $this->buildGameState($gameId);
-            $message = $this->buildGuessMessage($outcome);
-            sendResponseCustom($message, $state);
-        } catch (Exception $e) {
-            logWithDate('Game guess failed', $e->getMessage());
-            sendResponse500();
+        if (!$activeGame) {
+            sendResponseCustom('Aucune partie en cours.', null);
+            return;
         }
+
+        $gameId = (int)$activeGame['id'];
+        $details = $this->game->findById($gameId);
+        $guesses = $this->game->getGuesses($gameId);
+
+        sendResponseCustom('Partie chargée.', $this->formatGame($details, $guesses, $authenticatedUserId));
     }
 
-    public function show(int $gameId, int $playerId): void
+    public function submitGuess(int $gameId, int $authenticatedUserId): void
     {
-        try {
-            $game = $this->game->findById($gameId);
-            if (!$game) {
-                sendResponse404();
-                return;
-            }
+        $payload = json_decode(file_get_contents('php://input'), true) ?? [];
+        $word = strtoupper(trim($payload['word'] ?? ''));
 
-            if (!$this->game->isPlayerInGame($gameId, $playerId)) {
-                sendResponseCustom('You are not allowed to view this game', null, 'Error', 403);
-                return;
-            }
-
-            $state = $this->buildGameState($gameId);
-            sendResponseCustom('Game state retrieved', $state);
-        } catch (Exception $e) {
-            logWithDate('Game retrieval failed', $e->getMessage());
-            sendResponse500();
+        if (strlen($word) !== self::WORD_LENGTH) {
+            sendResponseCustom('Le mot doit contenir exactement six lettres.', null, 'Error', 400);
+            return;
         }
+
+        $game = $this->game->findById($gameId);
+        if (!$game) {
+            sendResponse404();
+            return;
+        }
+
+        if (!$this->isPlayerInGame($game, $authenticatedUserId)) {
+            sendResponse403();
+            return;
+        }
+
+        if ($game['status'] !== 'in_progress') {
+            sendResponseCustom('La partie est terminée.', null, 'Error', 400);
+            return;
+        }
+
+        if ((int)$game['current_turn'] !== $authenticatedUserId) {
+            sendResponseCustom('Ce n’est pas votre tour.', null, 'Error', 403);
+            return;
+        }
+
+        $totalAttempts = $this->game->countGuesses($gameId);
+        if ($totalAttempts >= (int)$game['max_attempts']) {
+            sendResponseCustom('Nombre maximal de tentatives atteint.', null, 'Error', 400);
+            return;
+        }
+
+        $result = evaluateMotusGuess($game['secret_word'], $word);
+        $this->game->addGuess($gameId, $authenticatedUserId, $word, $result['feedback']);
+
+        $totalAttempts++;
+        $message = 'Proposition enregistrée.';
+        $otherPlayerId = $this->getOtherPlayerId($game, $authenticatedUserId);
+
+        if ($result['isWinning']) {
+            $this->game->markWinner($gameId, $authenticatedUserId);
+            $this->userStatus->clearGame($authenticatedUserId);
+            $this->userStatus->clearGame($otherPlayerId);
+            $message = 'Mot trouvé !';
+        } elseif ($totalAttempts >= (int)$game['max_attempts']) {
+            $this->game->markDraw($gameId);
+            $this->userStatus->clearGame($authenticatedUserId);
+            $this->userStatus->clearGame($otherPlayerId);
+            $message = 'Nombre maximal de tentatives atteint.';
+        } else {
+            $this->game->switchTurn($gameId, $otherPlayerId);
+        }
+
+        $details = $this->game->findById($gameId);
+        $guesses = $this->game->getGuesses($gameId);
+
+        sendResponseCustom($message, $this->formatGame($details, $guesses, $authenticatedUserId));
     }
 
-    public function timeout(int $gameId, int $playerId): void
+    public function forfeit(int $gameId, int $authenticatedUserId): void
     {
-        try {
-            $game = $this->game->findById($gameId);
-            if (!$game) {
-                sendResponse404();
-                return;
-            }
-
-            if (!$this->game->isPlayerInGame($gameId, $playerId)) {
-                sendResponseCustom('You are not allowed to modify this game', null, 'Error', 403);
-                return;
-            }
-
-            if ($game['status'] !== 'active') {
-                sendResponseCustom('Only active games can be timed out', null, 'Error', 400);
-                return;
-            }
-
-            $winnerId = ((int) $game['inviter_id'] === $playerId) ? (int) $game['invitee_id'] : (int) $game['inviter_id'];
-            $this->game->markTimeout($gameId, $winnerId);
-
-            $state = $this->buildGameState($gameId);
-            sendResponseCustom('Game has been marked as timed out', $state);
-        } catch (Exception $e) {
-            logWithDate('Game timeout failed', $e->getMessage());
-            sendResponse500();
+        $game = $this->game->findById($gameId);
+        if (!$game) {
+            sendResponse404();
+            return;
         }
+
+        if (!$this->isPlayerInGame($game, $authenticatedUserId)) {
+            sendResponse403();
+            return;
+        }
+
+        if ($game['status'] !== 'in_progress') {
+            sendResponseCustom('La partie est déjà terminée.', null, 'Error', 400);
+            return;
+        }
+
+        $otherPlayerId = $this->getOtherPlayerId($game, $authenticatedUserId);
+        $this->game->markForfeit($gameId, $otherPlayerId);
+        $this->userStatus->clearGame($authenticatedUserId);
+        $this->userStatus->clearGame($otherPlayerId);
+
+        $details = $this->game->findById($gameId);
+        $guesses = $this->game->getGuesses($gameId);
+
+        sendResponseCustom('Vous avez abandonné la partie.', $this->formatGame($details, $guesses, $authenticatedUserId));
     }
 
-    public static function isValidWord(string $word): bool
+    private function formatGame(?array $game, array $guesses, int $viewerId): ?array
     {
-        if ($word === '') {
-            return false;
+        if (!$game) {
+            return null;
         }
 
-        return (bool) preg_match('/^[A-Z]{6}$/', strtoupper($word));
-    }
-
-    public static function evaluateGuessPattern(string $targetWord, string $guessWord): array
-    {
-        $targetWord = strtoupper($targetWord);
-        $guessWord = strtoupper($guessWord);
-        $targetLetters = str_split($targetWord);
-        $guessLetters = str_split($guessWord);
-        $length = count($targetLetters);
-        $result = [];
-        $remaining = [];
-
-        for ($i = 0; $i < $length; $i++) {
-            $letter = $targetLetters[$i];
-            if (!isset($remaining[$letter])) {
-                $remaining[$letter] = 0;
-            }
-            $remaining[$letter]++;
+        $maxAttempts = (int)($game['max_attempts'] ?? self::MAX_ATTEMPTS);
+        $turnDuration = (int)($game['turn_duration'] ?? self::TURN_DURATION);
+        $turnStartedAt = $game['turn_started_at'] ?? null;
+        $turnExpiresAt = null;
+        if ($turnStartedAt) {
+            $turnExpiresAt = date('c', strtotime($turnStartedAt) + $turnDuration);
         }
 
-        for ($i = 0; $i < $length; $i++) {
-            $guessLetter = $guessLetters[$i];
-            if ($guessLetter === $targetLetters[$i]) {
-                $result[$i] = [
-                    'letter' => $guessLetter,
-                    'color' => 'correct',
-                ];
-                $remaining[$guessLetter]--;
-            }
-        }
-
-        for ($i = 0; $i < $length; $i++) {
-            if (isset($result[$i])) {
-                continue;
+        $formattedGuesses = array_map(static function (array $guess): array {
+            $feedback = json_decode($guess['feedback'], true);
+            if (!is_array($feedback)) {
+                $feedback = [];
             }
 
-            $guessLetter = $guessLetters[$i];
-            $color = 'absent';
-            if (isset($remaining[$guessLetter]) && $remaining[$guessLetter] > 0) {
-                $color = 'present';
-                $remaining[$guessLetter]--;
-            }
-
-            $result[$i] = [
-                'letter' => $guessLetter,
-                'color' => $color,
+            return [
+                'id' => (int)$guess['id'],
+                'player_id' => (int)$guess['player_id'],
+                'player_pseudo' => $guess['player_pseudo'],
+                'word' => $guess['guess_word'],
+                'feedback' => $feedback,
+                'created_at' => date('c', strtotime($guess['created_at'])),
             ];
-        }
-
-        ksort($result);
-
-        return array_values($result);
-    }
-
-    public static function determineStatusFromGuess(bool $isCorrect, int $attemptNumber, int $maxAttempts): ?string
-    {
-        if ($isCorrect) {
-            return 'won';
-        }
-
-        if ($attemptNumber >= $maxAttempts) {
-            return 'lost';
-        }
-
-        return null;
-    }
-
-    private function getRequestData(): array
-    {
-        $raw = file_get_contents('php://input');
-        $data = json_decode($raw, true);
-        if (is_array($data)) {
-            return $data;
-        }
-
-        if (!empty($_POST)) {
-            return $_POST;
-        }
-
-        return [];
-    }
-
-    private function generateTargetWord(): string
-    {
-        $words = self::FALLBACK_WORDS;
-
-        if (!$words) {
-            return 'SECRET';
-        }
-
-        $word = $words[array_rand($words)] ?? 'SECRET';
-        $word = strtoupper($word);
-
-        if (!self::isValidWord($word)) {
-            return 'SECRET';
-        }
-
-        return $word;
-    }
-
-    private function buildGameState(int $gameId): array
-    {
-        $game = $this->game->getCurrentState($gameId) ?? [];
-        $guesses = $this->gameGuess->getGuessesForGame($gameId);
+        }, $guesses);
 
         return [
-            'game' => $game,
-            'guesses' => $guesses,
+            'id' => (int)$game['id'],
+            'status' => $game['status'],
+            'player_turn_id' => isset($game['current_turn']) ? (int)$game['current_turn'] : null,
+            'is_viewer_turn' => isset($game['current_turn']) && (int)$game['current_turn'] === $viewerId,
+            'player1' => [
+                'id' => (int)$game['player1_id'],
+                'pseudo' => $game['player1_pseudo'],
+                'avatar' => $game['player1_avatar'] ?? null,
+            ],
+            'player2' => [
+                'id' => (int)$game['player2_id'],
+                'pseudo' => $game['player2_pseudo'],
+                'avatar' => $game['player2_avatar'] ?? null,
+            ],
+            'guesses' => $formattedGuesses,
+            'max_attempts' => $maxAttempts,
+            'attempts_used' => count($formattedGuesses),
+            'remaining_attempts' => max(0, $maxAttempts - count($formattedGuesses)),
+            'turn_started_at' => $turnStartedAt ? date('c', strtotime($turnStartedAt)) : null,
+            'turn_expires_at' => $turnExpiresAt,
+            'word_length' => self::WORD_LENGTH,
+            'winner_id' => isset($game['winner_id']) ? (int)$game['winner_id'] : null,
         ];
     }
 
-    private function isGuessCorrect(array $pattern): bool
+    private function isPlayerInGame(array $game, int $playerId): bool
     {
-        foreach ($pattern as $item) {
-            if (($item['color'] ?? '') !== 'correct') {
-                return false;
-            }
-        }
-
-        return true;
+        return (int)$game['player1_id'] === $playerId || (int)$game['player2_id'] === $playerId;
     }
 
-    private function buildGuessMessage(?string $outcome): string
+    private function getOtherPlayerId(array $game, int $playerId): int
     {
-        return match ($outcome) {
-            'won' => 'Correct guess! You win the game.',
-            'lost' => 'Maximum attempts reached. Game over.',
-            default => 'Guess registered',
-        };
+        return (int)$game['player1_id'] === $playerId ? (int)$game['player2_id'] : (int)$game['player1_id'];
     }
 }

@@ -5,949 +5,1381 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Client jQuery</title>
     <link rel="stylesheet" href="/assets/css/pico.min.css">
-    <style>
-        .inline-actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.75rem;
-            align-items: center;
-        }
-
-        .motus-grid {
-            display: grid;
-            gap: 0.5rem;
-            margin-block: 1rem;
-        }
-
-        .motus-row {
-            display: grid;
-            grid-template-columns: repeat(6, minmax(2.5rem, 1fr));
-            gap: 0.35rem;
-        }
-
-        .motus-cell {
-            aspect-ratio: 1;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 0.35rem;
-            font-weight: 700;
-            font-size: 1.25rem;
-            text-transform: uppercase;
-            background: #f5f5f5;
-            color: #15212b;
-        }
-
-        .motus-cell.cell-correct {
-            background: #d7263d;
-            color: #fff;
-        }
-
-        .motus-cell.cell-present {
-            background: #f7b801;
-            color: #15212b;
-        }
-
-        .motus-cell.cell-absent {
-            background: #0091ad;
-            color: #fff;
-        }
-
-        #guessTimer {
-            font-weight: 600;
-        }
-
-        #onlinePlayersList button,
-        #invitationList button,
-        #guessForm button {
-            margin-inline-start: 0.5rem;
-        }
-
-        #gameStatus {
-            font-style: italic;
-        }
-
-        #victoryMessage {
-            font-weight: 700;
-        }
-    </style>
+    <link rel="stylesheet" href="/assets/css/app.css">
     <script src="/assets/js/jquery-3.7.1.min.js"></script>
 </head>
 <body>
-<main class="container">
+<header class="page-header container">
     <h1>Client jQuery</h1>
+    <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Basculer le mode d'affichage">
+        <span class="toggle-icon" aria-hidden="true">🌙</span>
+        <span class="toggle-label">Mode sombre</span>
+    </button>
+</header>
+<main class="container page-content">
 
-    <article>
-        <h2>Authentification</h2>
-        <form id="loginForm">
-            <fieldset role="group">
-                <input type="email" id="loginEmail" name="email" placeholder="Email" required />
-                <input type="password" id="loginPassword" name="password" placeholder="Mot de passe" required />
-                <button type="submit">Se connecter</button>
+    <section id="authentication">
+        <form id="auth-form">
+            <fieldset>
+                <label for="auth-email">Adresse courriel</label>
+                <input type="email" id="auth-email" name="email" required>
             </fieldset>
-            <small id="loginMsg" aria-live="polite"></small>
+            <fieldset>
+                <label for="auth-password">Mot de passe</label>
+                <input type="password" id="auth-password" name="password" required>
+            </fieldset>
+            <button type="submit">Se connecter</button>
         </form>
 
-        <form id="logoutForm" hidden>
-            <button type="submit">Se déconnecter</button>
-            <small id="logoutMsg" aria-live="polite"></small>
-        </form>
-    </article>
+        <button id="logout-button" type="button" style="display: none;">Se déconnecter</button>
 
-    <article>
+        <p id="auth-message"></p>
+    </section>
+
+    <section id="registration">
         <h2>Créer un compte</h2>
-        <form id="registerForm">
-            <div class="grid">
-                <input type="text" id="registerFirstName" name="first_name" placeholder="Prénom" required />
-                <input type="text" id="registerLastName" name="last_name" placeholder="Nom" required />
-            </div>
-            <div class="grid">
-                <input type="text" id="registerPseudo" name="pseudo" placeholder="Pseudo" required />
-                <input type="date" id="registerBirthDate" name="birth_date" required />
-            </div>
-            <div class="grid">
-                <select id="registerGender" name="gender" required>
-                    <option value="" disabled selected>Genre</option>
-                    <option value="f">Féminin</option>
+        <form id="register-form">
+            <fieldset>
+                <label for="register-first-name">Prénom</label>
+                <input type="text" id="register-first-name" name="first_name" required>
+            </fieldset>
+            <fieldset>
+                <label for="register-last-name">Nom</label>
+                <input type="text" id="register-last-name" name="last_name" required>
+            </fieldset>
+            <fieldset>
+                <label for="register-pseudo">Pseudo</label>
+                <input type="text" id="register-pseudo" name="pseudo" required>
+            </fieldset>
+            <fieldset>
+                <label for="register-birth-date">Date de naissance</label>
+                <input type="date" id="register-birth-date" name="birth_date" required>
+            </fieldset>
+            <fieldset>
+                <label for="register-gender">Genre</label>
+                <select id="register-gender" name="gender" required>
+                    <option value="" selected disabled>-- Sélectionnez --</option>
                     <option value="m">Masculin</option>
+                    <option value="f">Féminin</option>
                     <option value="o">Autre</option>
                 </select>
-                <input type="text" id="registerAvatar" name="avatar" placeholder="Avatar (fichier)" required />
-            </div>
-            <div class="grid">
-                <input type="email" id="registerEmail" name="email" placeholder="Email" required />
-                <input type="password" id="registerPassword" name="password" placeholder="Mot de passe" required />
-            </div>
+            </fieldset>
+            <fieldset>
+                <label for="register-avatar">Avatar</label>
+                <input type="text" id="register-avatar" name="avatar" required>
+            </fieldset>
+            <fieldset>
+                <label for="register-email">Adresse courriel</label>
+                <input type="email" id="register-email" name="email" required>
+            </fieldset>
+            <fieldset>
+                <label for="register-password">Mot de passe</label>
+                <input type="password" id="register-password" name="password" required>
+            </fieldset>
             <button type="submit">Créer le compte</button>
-            <small id="registerMsg" aria-live="polite"></small>
         </form>
-    </article>
+        <p id="register-message"></p>
+    </section>
 
-    <article id="onlinePlayersSection" hidden>
-        <h2>Joueurs disponibles</h2>
-        <p>Invitez un joueur en ligne pour lancer une partie.</p>
-        <ul id="onlinePlayersList"></ul>
-        <small id="onlinePlayersMsg" aria-live="polite"></small>
-    </article>
+    <section id="game-selector">
+        <h2>Jeux disponibles</h2>
+        <article class="game-card" aria-labelledby="motus-card-title">
+            <h3 id="motus-card-title">Motus (multijoueur)</h3>
+            <p>
+                Affrontez un autre joueur en proposant des mots de six lettres tour à tour.
+                Les lettres bien placées s'affichent en rouge, les lettres mal placées en jaune.
+            </p>
+            <button type="button" id="open-motus-button" disabled>Accéder à Motus</button>
+            <p class="game-card-status" id="motus-card-status">Connectez-vous pour lancer une partie de Motus.</p>
+        </article>
+    </section>
 
-    <article id="invitationsSection" hidden>
-        <h2>Invitations reçues</h2>
-        <p>Acceptez une invitation pour rejoindre une partie Motus.</p>
-        <ul id="invitationList"></ul>
-        <small id="invitationMsg" aria-live="polite"></small>
-    </article>
-
-    <article id="gameSection" hidden>
-        <h2>Partie en cours</h2>
-        <div id="gameStatus">Aucune partie active.</div>
-        <div id="turnInfo"></div>
-        <div id="guessTimer" aria-live="polite"></div>
-        <div class="motus-grid" id="motusGrid"></div>
-        <form id="guessForm" class="inline-actions" hidden>
-            <input type="text" id="guessInput" name="guess" maxlength="6" placeholder="Mot de 6 lettres" autocomplete="off" required />
-            <button type="submit" id="guessSubmit">Envoyer</button>
-            <small id="guessMsg" aria-live="polite"></small>
-        </form>
-        <div id="victoryMessage" aria-live="polite"></div>
-    </article>
-
-    <article>
-        <h2>Mettre à jour mon compte</h2>
-        <form id="updateForm" hidden>
-            <div class="grid">
-                <input type="text" id="updatePseudo" name="pseudo" placeholder="Nouveau pseudo" />
-                <select id="updateGender" name="gender">
-                    <option value="" selected>Genre (inchangé)</option>
-                    <option value="f">Féminin</option>
+    <section id="profile-section" style="display: none;">
+        <h2>Modifier mon compte</h2>
+        <form id="profile-form">
+            <fieldset>
+                <label for="profile-pseudo">Pseudo</label>
+                <input type="text" id="profile-pseudo" name="pseudo">
+            </fieldset>
+            <fieldset>
+                <label for="profile-gender">Genre</label>
+                <select id="profile-gender" name="gender">
+                    <option value="" selected disabled>-- Sélectionnez --</option>
                     <option value="m">Masculin</option>
+                    <option value="f">Féminin</option>
                     <option value="o">Autre</option>
                 </select>
+            </fieldset>
+            <fieldset>
+                <label for="profile-avatar">Avatar</label>
+                <input type="text" id="profile-avatar" name="avatar">
+            </fieldset>
+            <button type="submit">Mettre à jour</button>
+        </form>
+        <hr>
+        <button id="delete-account-button" type="button">Supprimer mon compte</button>
+        <p id="profile-message"></p>
+    </section>
+
+    <section id="motus-wrapper">
+        <section id="lobby-section">
+            <h2>Joueurs disponibles</h2>
+            <p id="lobby-info">Sélectionnez un joueur connecté pour démarrer une partie.</p>
+            <ul id="available-players-list"></ul>
+            <p id="lobby-message"></p>
+        </section>
+
+        <section id="game-section">
+            <h2>Motus</h2>
+            <div id="game-status-bar">
+                <span id="game-opponents"></span>
+                <span id="game-turn"></span>
+                <span id="turn-countdown"></span>
+                <span id="attempts-counter"></span>
             </div>
-            <input type="text" id="updateAvatar" name="avatar" placeholder="Nouvel avatar" />
-            <button type="submit">Enregistrer les modifications</button>
-            <small id="updateMsg" aria-live="polite"></small>
-        </form>
-    </article>
-
-    <article>
-        <h2>Supprimer mon compte</h2>
-        <form id="deleteForm" hidden>
-            <button type="submit" class="contrast">Supprimer mon compte</button>
-            <small id="deleteMsg" aria-live="polite"></small>
-        </form>
-    </article>
-
-    <article>
-        <h2>Informations de session</h2>
-        <p id="sessionInfo">Non authentifié.</p>
-    </article>
+            <div class="motus-board" id="game-grid"></div>
+            <form id="guess-form">
+                <fieldset>
+                    <label for="guess-word">Votre proposition (6 lettres)</label>
+                    <input type="text" id="guess-word" name="guess-word" maxlength="6" minlength="6" autocomplete="off"
+                           required>
+                </fieldset>
+                <button type="submit">Valider</button>
+                <button type="button" id="forfeit-button" class="secondary">Abandonner</button>
+            </form>
+            <p id="game-message"></p>
+        </section>
+    </section>
 </main>
-
 <script>
-    const API_BASE = 'http://localhost:8000/api';
+    const THEME_STORAGE_KEY = 'legacybeat-theme';
+    const rootElement = document.body;
+    const themeToggleButton = document.getElementById('theme-toggle');
 
-    const REFRESH_INTERVAL_FAST = 2000;
-    const ONLINE_PLAYERS_REFRESH = REFRESH_INTERVAL_FAST;
-    const INVITATIONS_REFRESH = REFRESH_INTERVAL_FAST;
-    const GAME_REFRESH = REFRESH_INTERVAL_FAST;
-    const TURN_TIMER_DURATION = 8;
+    function applyTheme(theme) {
+        const normalizedTheme = theme === 'dark' ? 'dark' : 'light';
+        rootElement.setAttribute('data-theme', normalizedTheme);
+        localStorage.setItem(THEME_STORAGE_KEY, normalizedTheme);
 
-    let onlinePlayersInterval = null;
-    let invitationsInterval = null;
-    let gameInterval = null;
-    let currentGameId = null;
-    let guessTimer = null;
-    let guessTimeLeft = 0;
-    let currentTurnKey = null;
+        const icon = normalizedTheme === 'dark' ? '☀️' : '🌙';
+        const label = normalizedTheme === 'dark' ? 'Mode clair' : 'Mode sombre';
 
-    function getStoredToken() {
+        themeToggleButton.querySelector('.toggle-icon').textContent = icon;
+        themeToggleButton.querySelector('.toggle-label').textContent = label;
+    }
+
+    function toggleTheme() {
+        const currentTheme = rootElement.getAttribute('data-theme');
+        applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
+    }
+
+    const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    applyTheme(savedTheme || (prefersDark ? 'dark' : 'light'));
+
+    themeToggleButton.addEventListener('click', toggleTheme);
+
+    let dataSample = {
+        first_name: "Adrien",
+        last_name: "Girard",
+        pseudo: "CodeRanger",
+        birth_date: "2004-12-03",
+        gender: "m",
+        avatar: "coderanger.jpg",
+        email: "adrien.girard@example.com",
+        password: "password"
+    };
+
+    let partialDataSample = {
+        pseudo: "Avalonee",
+        avatar: "avalonee.jpg"
+    };
+
+    var currentUserId = null;
+    var currentUserPseudo = null;
+    var refreshDeferred = null;
+    var lobbyIntervalId = null;
+    var gameIntervalId = null;
+    var turnCountdownIntervalId = null;
+    var currentGameId = null;
+    var lastKnownGameState = null;
+    var GAME_POLL_INTERVAL = 3000;
+    var LOBBY_POLL_INTERVAL = 5000;
+
+    function setAccessToken(token) {
+        localStorage.setItem('accessToken', token);
+    }
+
+    function getAccessToken() {
         return localStorage.getItem('accessToken');
     }
 
-    function getStoredUserId() {
-        return localStorage.getItem('userId');
+    function clearAccessToken() {
+        localStorage.removeItem('accessToken');
     }
 
-    function parseJwt(token) {
+    function isAccessTokenExpired(token) {
+        var payload = decodeAccessToken(token);
+
+        if (!payload || !payload.exp) {
+            return true;
+        }
+
+        var now = Math.floor(Date.now() / 1000);
+        return payload.exp <= now;
+    }
+
+    function handleTokenRefreshFailure() {
+        clearAccessToken();
+        onDeauthentication('Votre session a expiré. Veuillez vous reconnecter.');
+    }
+
+    function requestTokenRefresh() {
+        if (!refreshDeferred) {
+            var deferred = $.Deferred();
+            refreshDeferred = deferred;
+
+            $.ajax({
+                url: 'http://localhost:8000/api/token/refresh',
+                method: 'POST',
+                success: function (response) {
+                    var accessToken = response.data && response.data.accessToken;
+                    if (accessToken) {
+                        setAccessToken(accessToken);
+                        deferred.resolve(accessToken);
+                    } else {
+                        deferred.reject();
+                    }
+                },
+                error: function (xhr) {
+                    deferred.reject(xhr);
+                },
+                complete: function () {
+                    refreshDeferred = null;
+                }
+            });
+        }
+
+        return refreshDeferred.promise();
+    }
+
+    function ensureValidAccessToken(onSuccess, onFailure) {
+        var accessToken = getAccessToken();
+
+        if (!accessToken) {
+            if (typeof onFailure === 'function') {
+                onFailure();
+            }
+            return;
+        }
+
+        if (!isAccessTokenExpired(accessToken)) {
+            if (typeof onSuccess === 'function') {
+                onSuccess(accessToken);
+            }
+            return;
+        }
+
+        requestTokenRefresh()
+            .done(function (newToken) {
+                if (typeof onSuccess === 'function') {
+                    onSuccess(newToken);
+                }
+            })
+            .fail(function (xhr) {
+                handleTokenRefreshFailure();
+                if (typeof onFailure === 'function') {
+                    onFailure(xhr);
+                }
+            });
+    }
+
+    function withValidToken(callback, onFailure) {
+        ensureValidAccessToken(function (token) {
+            if (typeof callback === 'function') {
+                callback(token);
+            }
+        }, onFailure);
+    }
+
+    function startLobbyPolling() {
+        if (lobbyIntervalId) {
+            return;
+        }
+
+        fetchAvailablePlayers();
+        lobbyIntervalId = setInterval(fetchAvailablePlayers, LOBBY_POLL_INTERVAL);
+    }
+
+    function stopLobbyPolling() {
+        if (lobbyIntervalId) {
+            clearInterval(lobbyIntervalId);
+            lobbyIntervalId = null;
+        }
+    }
+
+    function startGamePolling() {
+        if (gameIntervalId) {
+            return;
+        }
+
+        fetchCurrentGame();
+        gameIntervalId = setInterval(fetchCurrentGame, GAME_POLL_INTERVAL);
+    }
+
+    function stopGamePolling() {
+        if (gameIntervalId) {
+            clearInterval(gameIntervalId);
+            gameIntervalId = null;
+        }
+    }
+
+    function stopTurnCountdown() {
+        if (turnCountdownIntervalId) {
+            clearInterval(turnCountdownIntervalId);
+            turnCountdownIntervalId = null;
+        }
+        $('#turn-countdown').text('');
+    }
+
+    function startTurnCountdown(turnExpiresAt, isViewerTurn) {
+        stopTurnCountdown();
+
+        if (!turnExpiresAt || !isViewerTurn) {
+            return;
+        }
+
+        function updateCountdown() {
+            var now = new Date();
+            var target = new Date(turnExpiresAt);
+            var diff = target.getTime() - now.getTime();
+
+            if (isNaN(diff) || diff <= 0) {
+                $('#turn-countdown').text('Temps écoulé');
+                stopTurnCountdown();
+                return;
+            }
+
+            var seconds = Math.ceil(diff / 1000);
+            $('#turn-countdown').text('Temps restant : ' + seconds + ' s');
+        }
+
+        updateCountdown();
+        turnCountdownIntervalId = setInterval(updateCountdown, 1000);
+    }
+
+    function fetchAvailablePlayers() {
+        if (!currentUserId) {
+            return;
+        }
+
+        withValidToken(function (token) {
+            $.ajax({
+                url: 'http://localhost:8000/api/game/available-players',
+                method: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                },
+                success: function (response) {
+                    renderAvailablePlayers(response.data || []);
+                    if (response.message) {
+                        $('#lobby-message').text('');
+                    }
+                },
+                error: function (xhr) {
+                    if (xhr.status === 401) {
+                        reauthenticate(function () {
+                            fetchAvailablePlayers();
+                        });
+                    }
+                }
+            });
+        });
+    }
+
+    function renderAvailablePlayers(players) {
+        var list = $('#available-players-list');
+        list.empty();
+
+        var canChallenge = !lastKnownGameState || lastKnownGameState.status !== 'in_progress';
+
+        if (!players.length) {
+            var message = canChallenge ? 'Aucun autre joueur connecté pour le moment.' : 'La liste sera disponible à la fin de votre partie.';
+            list.append($('<li></li>').text(message));
+            return;
+        }
+
+        players.forEach(function (player) {
+            var button = $('<button type="button" class="contrast start-game-button"></button>');
+            button.text(player.pseudo || 'Joueur ' + player.id);
+            button.attr('data-user-id', player.id);
+            var opponentBusy = player.is_in_game === 1 || player.is_in_game === '1';
+            if (!canChallenge || opponentBusy) {
+                button.prop('disabled', true);
+            }
+
+            var content = $('<div class="player-entry"></div>');
+            content.append(button);
+
+            if (opponentBusy) {
+                button.addClass('secondary');
+                content.append($('<small class="player-status busy"></small>').text('En partie'));
+                content.append($('<span class="visually-hidden"></span>').text('Joueur en partie'));
+            }
+
+            var listItem = $('<li></li>');
+            listItem.append(content)
+            list.append(listItem);
+        });
+    }
+
+    function startGameAgainst(opponentId) {
+        if (!opponentId) {
+            return;
+        }
+
+        withValidToken(function (token) {
+            $.ajax({
+                url: 'http://localhost:8000/api/game',
+                method: 'POST',
+                data: {opponent_id: opponentId},
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                },
+                success: function (response) {
+                    if (response.data) {
+                        handleGameUpdate(response.data, response.message);
+                    }
+                    $('#lobby-message').text(response.message || '');
+                },
+                error: function (xhr) {
+                    if (xhr.status === 401) {
+                        reauthenticate(function () {
+                            startGameAgainst(opponentId);
+                        });
+                        return;
+                    }
+
+                    var message = 'Impossible de démarrer la partie.';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        message = xhr.responseJSON.message;
+                    }
+                    $('#lobby-message').text(message);
+                }
+            });
+        });
+    }
+
+    function fetchCurrentGame() {
+        if (!currentUserId) {
+            return;
+        }
+
+        withValidToken(function (token) {
+            $.ajax({
+                url: 'http://localhost:8000/api/game/current',
+                method: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                },
+                success: function (response) {
+                    handleGameUpdate(response.data, response.data ? response.message : null);
+                },
+                error: function (xhr) {
+                    if (xhr.status === 401) {
+                        reauthenticate(function () {
+                            fetchCurrentGame();
+                        });
+                    }
+                }
+            });
+        });
+    }
+
+    function renderGameGrid(game) {
+        var board = $('#game-grid');
+        board.empty();
+
+        var totalRows = game.max_attempts || 0;
+        var wordLength = game.word_length || 6;
+        var guesses = game.guesses || [];
+
+        for (var i = 0; i < totalRows; i++) {
+            var row = $('<div class="motus-row"></div>');
+            var guess = guesses[i];
+
+            if (guess) {
+                var feedback = Array.isArray(guess.feedback) ? guess.feedback : [];
+                for (var j = 0; j < wordLength; j++) {
+                    var cellInfo = feedback[j] || {letter: '', status: 'empty'};
+                    var cell = $('<div class="motus-cell"></div>');
+                    var statusClass = cellInfo.status || 'empty';
+                    if (statusClass !== 'empty') {
+                        cell.addClass(statusClass);
+                    } else {
+                        cell.addClass('empty');
+                    }
+                    cell.text((cellInfo.letter || '').toUpperCase());
+                    row.append(cell);
+                }
+            } else {
+                for (var j = 0; j < wordLength; j++) {
+                    var emptyCell = $('<div class="motus-cell empty"></div>');
+                    emptyCell.text('');
+                    row.append(emptyCell);
+                }
+            }
+
+            board.append(row);
+        }
+    }
+
+    function setGuessFormAvailability(game) {
+        var inProgress = game.status === 'in_progress';
+        var isPlayerTurn = inProgress && game.is_viewer_turn;
+
+        if (inProgress) {
+            $('#guess-form').show();
+        } else {
+            $('#guess-form').hide();
+            $('#guess-form')[0].reset();
+        }
+
+        $('#guess-form').toggleClass('active', inProgress);
+
+        $('#guess-word').prop('disabled', !isPlayerTurn);
+        $('#guess-form button[type="submit"]').prop('disabled', !isPlayerTurn);
+        $('#forfeit-button').prop('disabled', !inProgress);
+
+        if (isPlayerTurn) {
+            $('#guess-word').focus();
+        }
+    }
+
+    function handleGameUpdate(game, message) {
+        if (!game) {
+            currentGameId = null;
+            lastKnownGameState = null;
+            stopTurnCountdown();
+            $('#game-section').hide();
+            $('#motus-wrapper').show();
+            $('#lobby-section').show();
+            $('#game-grid').empty();
+            $('#game-opponents').text('');
+            $('#game-turn').text('');
+            $('#attempts-counter').text('');
+            $('#game-message').text(message || 'Aucune partie en cours.');
+            $('#forfeit-button').prop('disabled', true);
+            return;
+        }
+
+        lastKnownGameState = game;
+        currentGameId = game.id;
+        $('#motus-wrapper').show();
+
+        if (game.status === 'in_progress') {
+            $('#lobby-section').hide();
+        } else {
+            $('#lobby-section').show();
+        }
+
+        $('#game-section').show();
+
+        var opponentsText = '';
+        if (game.player1 && game.player2) {
+            opponentsText = (game.player1.pseudo || 'Joueur 1') + ' vs ' + (game.player2.pseudo || 'Joueur 2');
+        }
+        $('#game-opponents').text(opponentsText);
+
+        $('#attempts-counter').text('Tentatives : ' + game.attempts_used + '/' + game.max_attempts);
+
+        var turnText = '';
+        if (game.status === 'in_progress') {
+            if (game.is_viewer_turn) {
+                turnText = 'À votre tour !';
+            } else {
+                var currentPseudo = '';
+                if (game.player_turn_id === game.player1.id) {
+                    currentPseudo = game.player1.pseudo;
+                } else if (game.player_turn_id === game.player2.id) {
+                    currentPseudo = game.player2.pseudo;
+                }
+                turnText = currentPseudo ? 'Tour de ' + currentPseudo : 'Tour de l’adversaire';
+            }
+        } else if (game.status === 'won') {
+            var winnerPseudo = '';
+            if (game.winner_id === game.player1.id) {
+                winnerPseudo = game.player1.pseudo;
+            } else if (game.winner_id === game.player2.id) {
+                winnerPseudo = game.player2.pseudo;
+            }
+            turnText = winnerPseudo ? ('Victoire de ' + winnerPseudo + ' !') : 'Partie remportée.';
+        } else if (game.status === 'draw') {
+            turnText = 'Aucun gagnant : le nombre maximal de tentatives a été atteint.';
+        } else if (game.status === 'forfeit') {
+            var winner = '';
+            if (game.winner_id === game.player1.id) {
+                winner = game.player1.pseudo;
+            } else if (game.winner_id === game.player2.id) {
+                winner = game.player2.pseudo;
+            }
+            turnText = winner ? ('Victoire de ' + winner + ' par abandon.') : 'Partie terminée par abandon.';
+        } else {
+            turnText = 'Partie terminée.';
+        }
+
+        $('#game-turn').text(turnText);
+
+        renderGameGrid(game);
+        setGuessFormAvailability(game);
+
+        if (game.status === 'in_progress') {
+            startTurnCountdown(game.turn_expires_at, game.is_viewer_turn);
+        } else {
+            stopTurnCountdown();
+        }
+
+        if (message) {
+            $('#game-message').text(message);
+        } else if (game.status !== 'in_progress') {
+            $('#game-message').text(turnText);
+        } else {
+            $('#game-message').text('');
+        }
+    }
+
+    function clearGameUI() {
+        currentGameId = null;
+        lastKnownGameState = null;
+        stopTurnCountdown();
+        $('#motus-wrapper').hide();
+        $('#lobby-section').hide();
+        $('#available-players-list').empty();
+        $('#lobby-message').text('');
+        $('#game-section').hide();
+        $('#game-grid').empty();
+        $('#game-message').text('');
+        $('#game-turn').text('');
+        $('#game-opponents').text('');
+        $('#attempts-counter').text('');
+        $('#guess-form')[0].reset();
+        $('#guess-form').hide();
+        $('#forfeit-button').prop('disabled', true);
+    }
+
+    function updateMotusAccessUI() {
+        var isAuthenticated = Boolean(currentUserId);
+        var button = $('#open-motus-button');
+        var status = $('#motus-card-status');
+
+        if (isAuthenticated) {
+            button.prop('disabled', false);
+            status.text('Cliquez sur «\u00a0Accéder à Motus\u00a0» pour rejoindre le lobby et défier un joueur connecté.');
+        } else {
+            button.prop('disabled', true);
+            status.text('Connectez-vous pour lancer une partie de Motus.');
+        }
+    }
+
+    function revealMotusSection() {
+        $('#motus-wrapper').show();
+
+        if (!lastKnownGameState) {
+            $('#lobby-section').show();
+        }
+
+        var motusOffset = $('#motus-wrapper').offset();
+        if (motusOffset) {
+            $('html, body').animate({scrollTop: motusOffset.top - 20}, 400);
+        }
+    }
+
+    function submitGuess(word) {
+        if (!currentGameId) {
+            return;
+        }
+
+        var sanitizedWord = (word || '').toUpperCase().trim();
+
+        if (sanitizedWord.length !== 6) {
+            $('#game-message').text('Votre mot doit comporter exactement six lettres.');
+            return;
+        }
+
+        withValidToken(function (token) {
+            $.ajax({
+                url: 'http://localhost:8000/api/game/' + currentGameId + '/guess',
+                method: 'POST',
+                data: JSON.stringify({word: sanitizedWord}),
+                contentType: 'application/json',
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                },
+                success: function (response) {
+                    $('#guess-word').val('');
+                    if (response.data) {
+                        handleGameUpdate(response.data, response.message);
+                    } else if (response.message) {
+                        $('#game-message').text(response.message);
+                    }
+                },
+                error: function (xhr) {
+                    if (xhr.status === 401) {
+                        reauthenticate(function () {
+                            submitGuess(sanitizedWord);
+                        });
+                        return;
+                    }
+
+                    var message = 'La proposition n’a pas pu être enregistrée.';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        message = xhr.responseJSON.message;
+                    }
+                    $('#game-message').text(message);
+                }
+            });
+        });
+    }
+
+    function forfeitGame() {
+        if (!currentGameId) {
+            return;
+        }
+
+        var confirmed = window.confirm('Voulez-vous abandonner la partie ?');
+        if (!confirmed) {
+            return;
+        }
+
+        withValidToken(function (token) {
+            $.ajax({
+                url: 'http://localhost:8000/api/game/' + currentGameId + '/forfeit',
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                },
+                success: function (response) {
+                    if (response.data) {
+                        handleGameUpdate(response.data, response.message);
+                    } else if (response.message) {
+                        $('#game-message').text(response.message);
+                    }
+                },
+                error: function (xhr) {
+                    if (xhr.status === 401) {
+                        reauthenticate(function () {
+                            forfeitGame();
+                        });
+                        return;
+                    }
+
+                    var message = 'Impossible d’abandonner la partie.';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        message = xhr.responseJSON.message;
+                    }
+                    $('#game-message').text(message);
+                }
+            });
+        });
+    }
+
+
+    function decodeAccessToken(token) {
+        if (!token) {
+            return null;
+        }
+
+        var parts = token.split('.');
+        if (parts.length !== 3) {
+            return null;
+        }
+
+        var payload = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+        while (payload.length % 4 !== 0) {
+            payload += '=';
+        }
+
         try {
-            const payload = token.split('.')[1];
-            const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
-            const jsonPayload = decodeURIComponent(atob(base64).split('').map(function (c) {
-                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-            }).join(''));
-            return JSON.parse(jsonPayload);
+            return JSON.parse(atob(payload));
         } catch (error) {
             return null;
         }
     }
 
-    function setAuthenticatedState(isAuthenticated, sessionData = null) {
-        $('#loginForm').prop('hidden', isAuthenticated);
-        $('#logoutForm').prop('hidden', !isAuthenticated);
-        $('#updateForm').prop('hidden', !isAuthenticated);
-        $('#deleteForm').prop('hidden', !isAuthenticated);
-        $('#onlinePlayersSection').prop('hidden', !isAuthenticated);
-        $('#invitationsSection').prop('hidden', !isAuthenticated);
-        $('#gameSection').prop('hidden', !isAuthenticated);
-
-        if (isAuthenticated && sessionData) {
-            $('#sessionInfo').text(`Connecté en tant qu'utilisateur #${sessionData.userId} (${sessionData.email}).`);
-        } else if (isAuthenticated && getStoredUserId()) {
-            $('#sessionInfo').text(`Connecté en tant qu'utilisateur #${getStoredUserId()}.`);
-        } else {
-            $('#sessionInfo').text('Non authentifié.');
+    function extractUser(data) {
+        if (!data) {
+            return null;
         }
 
-        if (isAuthenticated) {
-            enableGameplayFeatures();
-        } else {
-            disableGameplayFeatures();
+        if (Array.isArray(data)) {
+            return data.length ? data[0] : null;
         }
-    }
 
-    function handleAjaxError(xhr, fallbackMessage) {
-        const message = xhr.responseJSON?.message || fallbackMessage;
-        return message;
-    }
-
-    function firstNonNull() {
-        for (let i = 0; i < arguments.length; i += 1) {
-            const value = arguments[i];
-            if (value !== undefined && value !== null && value !== '') {
-                return value;
-            }
-        }
-        return '';
+        return data;
     }
 
     function authenticate(email, password) {
         $.ajax({
-            url: `${API_BASE}/login`,
+            url: 'http://localhost:8000/api/login',
             method: 'POST',
-            data: { email: email, password: password },
-            xhrFields: {
-                withCredentials: true
-            },
+            data: {email: email, password: password},
             success: function (response) {
-                const accessToken = response.data?.accessToken;
-                if (!accessToken) {
-                    $('#loginMsg').text('Réponse inattendue.');
-                    return;
-                }
-                const payload = parseJwt(accessToken);
-                localStorage.setItem('accessToken', accessToken);
-                if (payload?.user_id) {
-                    localStorage.setItem('userId', payload.user_id);
-                    localStorage.setItem('userEmail', payload.email || email);
-                }
-                $('#loginMsg').text('Connexion réussie.');
-                setAuthenticatedState(true, { userId: payload?.user_id || '?', email: payload?.email || email });
+                var accessToken = response.data.accessToken;
+                setAccessToken(accessToken);
+                onAuthenticationSuccess('Authentification réussie.');
             },
-            error: function (xhr) {
-                const message = handleAjaxError(xhr, 'Échec de la connexion.');
-                $('#loginMsg').text(message);
+            error: function () {
+                onAuthenticationError('Les informations de connexion sont invalides.');
             }
         });
     }
 
     function deauthenticate() {
-        $.ajax({
-            url: `${API_BASE}/logout`,
-            method: 'POST',
-            headers: {
-                'Authorization': 'Bearer ' + getStoredToken(),
-            },
-            xhrFields: {
-                withCredentials: true
-            },
-            success: function () {
-                localStorage.removeItem('accessToken');
-                localStorage.removeItem('userId');
-                localStorage.removeItem('userEmail');
-                $('#logoutMsg').text('Déconnexion effectuée.');
-                $('#loginMsg').text('');
-                setAuthenticatedState(false);
-            },
-            error: function (xhr) {
-                const message = handleAjaxError(xhr, 'Impossible de se déconnecter.');
-                $('#logoutMsg').text(message);
-            }
-        });
-    }
-
-    function registerUser(formData) {
-        $.ajax({
-            url: `${API_BASE}/user`,
-            method: 'POST',
-            data: formData,
-            success: function () {
-                $('#registerMsg').text('Compte créé. Vous pouvez vous connecter.');
-                $('#registerForm')[0].reset();
-            },
-            error: function (xhr) {
-                const message = handleAjaxError(xhr, 'Création impossible.');
-                $('#registerMsg').text(message);
-            }
-        });
-    }
-
-    function updateUser(data) {
-        const userId = getStoredUserId();
-        if (!userId) {
-            $('#updateMsg').text('Utilisateur inconnu. Veuillez vous reconnecter.');
-            return;
-        }
-
-        $.ajax({
-            url: `${API_BASE}/user/${userId}`,
-            method: 'PATCH',
-            data: JSON.stringify(data),
-            contentType: 'application/json',
-            headers: {
-                'Authorization': 'Bearer ' + getStoredToken()
-            },
-            xhrFields: {
-                withCredentials: true
-            },
-            success: function () {
-                $('#updateMsg').text('Profil mis à jour.');
-            },
-            error: function (xhr) {
-                const message = handleAjaxError(xhr, 'Mise à jour impossible.');
-                $('#updateMsg').text(message);
-            }
-        });
-    }
-
-    function deleteUser() {
-        const userId = getStoredUserId();
-        if (!userId) {
-            $('#deleteMsg').text('Utilisateur inconnu. Veuillez vous reconnecter.');
-            return;
-        }
-
-        $.ajax({
-            url: `${API_BASE}/user/${userId}`,
-            method: 'DELETE',
-            headers: {
-                'Authorization': 'Bearer ' + getStoredToken()
-            },
-            xhrFields: {
-                withCredentials: true
-            },
-            success: function () {
-                $('#deleteMsg').text('Compte supprimé.');
-                localStorage.removeItem('accessToken');
-                localStorage.removeItem('userId');
-                localStorage.removeItem('userEmail');
-                setAuthenticatedState(false);
-            },
-            error: function (xhr) {
-                const message = handleAjaxError(xhr, 'Suppression impossible.');
-                $('#deleteMsg').text(message);
-            }
-        });
-    }
-
-    function sendInvitation(opponentId) {
-        $('#onlinePlayersMsg').text('Création de la partie...');
-
-        $.ajax({
-            url: `${API_BASE}/game`,
-            method: 'POST',
-            headers: {
-                'Authorization': 'Bearer ' + getStoredToken(),
-                'Content-Type': 'application/json',
-            },
-            data: JSON.stringify({ opponent_id: opponentId }),
-            processData: false,
-            xhrFields: {
-                withCredentials: true,
-            },
-            success: function (creationResponse) {
-                const createdGameId = creationResponse.data?.game?.id
-                    || creationResponse.data?.game_id
-                    || creationResponse.data?.id;
-
-                if (!createdGameId) {
-                    $('#onlinePlayersMsg').text('Partie créée mais identifiant introuvable.');
-                    return;
+        withValidToken(function (token) {
+            $.ajax({
+                url: 'http://localhost:8000/api/logout',
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                },
+                success: function () {
+                    clearAccessToken();
+                    onDeauthentication('Vous avez été déconnecté.');
+                },
+                error: function () {
+                    updateMessage('La déconnexion a échoué.');
                 }
-
-                const invitation = creationResponse.data?.invitation;
-                if (!invitation) {
-                    $('#onlinePlayersMsg').text('Partie créée mais aucune invitation enregistrée.');
-                    return;
-                }
-
-                $('#onlinePlayersMsg').text('Invitation envoyée.');
-                setCurrentGame(createdGameId);
-                fetchInvitations();
-            },
-            error: function (xhr) {
-                const message = handleAjaxError(xhr, 'Impossible de créer la partie.');
-                $('#onlinePlayersMsg').text(message);
-            }
+            });
+        }, function () {
+            updateMessage('Aucune session active.');
         });
     }
 
-    function acceptInvitation(invitationId) {
+    function reauthenticate(callback) {
+        return requestTokenRefresh()
+            .done(function (token) {
+                if (typeof callback === 'function') {
+                    callback(token);
+                }
+            })
+            .fail(function () {
+                handleTokenRefreshFailure();
+            });
+    }
+
+    function endpointList() {
+        withValidToken(function (token) {
+            $.ajax({
+                url: 'http://localhost:8000/api/user',
+                method: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                },
+                success: function () {
+                    // TODO Do something if needed
+                },
+                error: function () {
+                    // TODO Do something if needed
+                }
+            });
+        });
+    }
+
+    function endpointGet(id) {
+        withValidToken(function (token) {
+            $.ajax({
+                url: 'http://localhost:8000/api/user' + '/' + id,
+                method: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                },
+                success: function () {
+                    // TODO Do something if needed
+                },
+                error: function () {
+                    // TODO Do something if needed
+                }
+            });
+        });
+    }
+
+    function endpointCreate(data) {
+        withValidToken(function (token) {
+            $.ajax({
+                url: 'http://localhost:8000/api/user',
+                method: 'POST',
+                data: data,
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                },
+                success: function () {
+                    // TODO Do something if needed
+                },
+                error: function () {
+                    // TODO Do something if needed
+                }
+            });
+        });
+    }
+
+    function registerUser(data) {
         $.ajax({
-            url: `${API_BASE}/game/${invitationId}/accept`,
+            url: 'http://localhost:8000/api/user',
             method: 'POST',
-            headers: {
-                'Authorization': 'Bearer ' + getStoredToken(),
-            },
-            xhrFields: {
-                withCredentials: true,
-            },
+            data: data,
             success: function (response) {
-                $('#invitationMsg').text('Invitation acceptée. Bonne partie !');
-                const gameId = response.data?.game_id || response.data?.id || invitationId;
-                setCurrentGame(gameId);
-                fetchInvitations();
+                onRegistrationSuccess('Compte créé avec succès.', response.data);
             },
             error: function (xhr) {
-                const message = handleAjaxError(xhr, "Impossible d'accepter l'invitation.");
-                $('#invitationMsg').text(message);
+                var message = 'La création du compte a échoué.';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    message = xhr.responseJSON.message;
+                }
+                onRegistrationError(message);
             }
         });
     }
 
-    function fetchOnlinePlayers() {
-        $.ajax({
-            url: `${API_BASE}/users/online`,
-            method: 'GET',
-            headers: {
-                'Authorization': 'Bearer ' + getStoredToken(),
-            },
-            xhrFields: {
-                withCredentials: true,
-            },
-            success: function (response) {
-                const players = response.data || [];
-                const list = $('#onlinePlayersList');
-                list.empty();
-
-                if (!players.length) {
-                    list.append('<li>Aucun joueur en ligne pour le moment.</li>');
-                    return;
+    function endpointUpdate(id, data) {
+        withValidToken(function (token) {
+            $.ajax({
+                url: 'http://localhost:8000/api/user' + '/' + id,
+                method: 'PATCH',
+                data: JSON.stringify(data),
+                contentType: 'application/json',
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                },
+                success: function () {
+                    // TODO Do something if needed
+                },
+                error: function () {
+                    // TODO Do something if needed
                 }
+            });
+        });
+    }
 
-                let hasDisplayedSomeone = false;
+    function endpointReplace(id) {
+        // TODO Nothing to do
+    }
 
-                players.forEach(function (player) {
-                    if (String(player.id) === String(getStoredUserId())) {
+    function endpointDelete(id) {
+        withValidToken(function (token) {
+            $.ajax({
+                url: 'http://localhost:8000/api/user' + '/' + id,
+                method: 'DELETE',
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                },
+                success: function () {
+                    // TODO Do something if needed
+                },
+                error: function () {
+                    // TODO Do something if needed
+                }
+            });
+        });
+    }
+
+    /*
+     * Example of a sequence of actions:
+     *   - 4
+     *   - 1 (with valid credentials)
+     *   - 4
+     *   - 1 (with invalid credentials)
+     *   - 4
+     *   - 1 (with valid credentials)
+     *   - 4
+     *   - 2
+     *   - 4
+     *   - 1 (with valid credentials, then wait for 5 minutes or change JWT_TTL value)
+     *   - 3
+     *   - 2
+     *   - 3
+     */
+    const action = null;
+    switch (action) {
+        case 1:
+            authenticate("lucas.morel@example.com", "password");
+            break;
+        case 2:
+            deauthenticate();
+            break;
+        case 3:
+            reauthenticate();
+            break;
+        case 4:
+            endpointList();
+            break;
+        case 5:
+            endpointGet(1);
+            break;
+        case 6:
+            endpointCreate(dataSample);
+            break;
+        case 7:
+            endpointUpdate(1, partialDataSample);
+            break;
+        case 8:
+            // endpointReplace(1);
+            // TODO Nothing to doo
+            break;
+        case 9:
+            endpointDelete(6);
+            break;
+        default:
+            console.log('Unknown action number: ' + action);
+            break;
+    }
+
+    function fetchUserProfile(userId) {
+        withValidToken(function (token) {
+            $.ajax({
+                url: 'http://localhost:8000/api/user/' + userId,
+                method: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                },
+                success: function (response) {
+                    var user = extractUser(response.data);
+                    if (user) {
+                        currentUserPseudo = user.pseudo || null;
+                        fillProfileForm(user);
+                        $('#profile-section').show();
+                        updateProfileMessage('');
+                    } else {
+                        updateProfileMessage('Impossible de charger le profil utilisateur.');
+                    }
+                },
+                error: function (xhr) {
+                    if (xhr.status === 401) {
+                        reauthenticate(function () {
+                            fetchUserProfile(userId);
+                        });
                         return;
                     }
-                    hasDisplayedSomeone = true;
-                    const listItem = $('<li>').addClass('inline-actions');
-                    const name = player.pseudo || `${player.first_name || ''} ${player.last_name || ''}`.trim() || `Joueur #${player.id}`;
-                    listItem.append($('<span>').text(name));
-                    const inviteButton = $('<button type="button">').text('Inviter');
-                    inviteButton.on('click', function () {
-                        sendInvitation(player.id);
-                    });
-                    listItem.append(inviteButton);
-                    list.append(listItem);
+                    updateProfileMessage('Impossible de charger le profil utilisateur.');
+                }
+            });
+        }, function () {
+            updateProfileMessage('Impossible de charger le profil utilisateur.');
+        });
+    }
+
+    function loadAuthenticatedUser() {
+        var token = getAccessToken();
+        var payload = decodeAccessToken(token);
+
+        if (!payload || !payload.user_id) {
+            return;
+        }
+
+        currentUserId = payload.user_id;
+        currentUserPseudo = null;
+        updateMotusAccessUI()
+        fetchUserProfile(currentUserId);
+    }
+
+    function onAuthenticationSuccess(message) {
+        $('#auth-form')[0].reset();
+        $('#auth-form').hide();
+        $('#logout-button').show();
+        $('#registration').hide();
+        updateMessage(message);
+        loadAuthenticatedUser();
+        stopLobbyPolling();
+        stopGamePolling();
+        startLobbyPolling();
+        startGamePolling();
+        $('#motus-wrapper').show();
+        updateMotusAccessUI();
+    }
+
+    function onAuthenticationError(message) {
+        $('#auth-form').show();
+        $('#logout-button').hide();
+        $('#registration').show();
+        updateMessage(message);
+        currentUserId = null;
+        currentUserPseudo = null;
+        $('#profile-section').hide();
+        clearProfileForm();
+        stopLobbyPolling();
+        stopGamePolling();
+        clearGameUI();
+        updateMotusAccessUI();
+    }
+
+    function onDeauthentication(message) {
+        $('#auth-form')[0].reset();
+        $('#auth-form').show();
+        $('#logout-button').hide();
+        $('#registration').show();
+        updateMessage(message);
+        currentUserId = null;
+        currentUserPseudo = null;
+        $('#profile-section').hide();
+        clearProfileForm();
+        stopLobbyPolling();
+        stopGamePolling();
+        clearGameUI();
+        updateMotusAccessUI();
+    }
+
+    function updateMessage(message) {
+        $('#auth-message').text(message);
+    }
+
+    function onRegistrationSuccess(message, data) {
+        $('#register-form')[0].reset();
+        var createdUser = extractUser(data);
+        if (createdUser && createdUser.email) {
+            $('#auth-email').val(createdUser.email);
+        }
+        updateRegisterMessage(message);
+    }
+
+    function onRegistrationError(message) {
+        updateRegisterMessage(message);
+    }
+
+    function updateRegisterMessage(message) {
+        $('#register-message').text(message);
+    }
+
+    function fillProfileForm(user) {
+        $('#profile-pseudo').val(user.pseudo || '');
+        if (user.gender) {
+            $('#profile-gender').val(user.gender);
+        } else {
+            $('#profile-gender')[0].selectedIndex = 0;
+        }
+        $('#profile-avatar').val(user.avatar || '');
+    }
+
+    function clearProfileForm() {
+        $('#profile-form')[0].reset();
+        $('#profile-gender')[0].selectedIndex = 0;
+        updateProfileMessage('');
+    }
+
+    function updateProfileMessage(message) {
+        $('#profile-message').text(message);
+    }
+
+    function updateUserProfile(data) {
+        if (!currentUserId) {
+            updateProfileMessage('Aucun utilisateur authentifié.');
+            return;
+        }
+
+        withValidToken(function (token) {
+            $.ajax({
+                url: 'http://localhost:8000/api/user/' + currentUserId,
+                method: 'PATCH',
+                data: JSON.stringify(data),
+                contentType: 'application/json',
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                },
+                success: function (response) {
+                    var user = extractUser(response.data);
+                    if (user) {
+                        fillProfileForm(user);
+                    }
+                    onProfileUpdateSuccess('Profil mis à jour.', user);
+                },
+                error: function (xhr) {
+                    if (xhr.status === 401) {
+                        reauthenticate(function () {
+                            updateUserProfile(data);
+                        });
+                        return;
+                    }
+
+                    var message = 'La mise à jour du profil a échoué.';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        message = xhr.responseJSON.message;
+                    }
+                    onProfileUpdateError(message);
+                }
+            });
+        }, function () {
+            onProfileUpdateError('La mise à jour du profil a échoué.');
+        });
+    }
+
+    function onProfileUpdateSuccess(message) {
+        updateProfileMessage(message);
+    }
+
+    function onProfileUpdateError(message) {
+        updateProfileMessage(message);
+    }
+
+    function deleteUserAccount() {
+        if (!currentUserId) {
+            updateProfileMessage('Aucun utilisateur authentifié.');
+            return;
+        }
+
+        var confirmed = window.confirm('Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est définitive.');
+
+        if (!confirmed) {
+            return;
+        }
+
+        performAccountDeletion();
+    }
+
+    function performAccountDeletion() {
+        withValidToken(function (token) {
+            $.ajax({
+                url: 'http://localhost:8000/api/user/' + currentUserId,
+                method: 'DELETE',
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                },
+                success: function () {
+                    onAccountDeletionSuccess('Compte supprimé.');
+                },
+                error: function (xhr) {
+                    if (xhr.status === 401) {
+                        reauthenticate(function () {
+                            performAccountDeletion();
+                        });
+                        return;
+                    }
+
+                    var message = 'La suppression du compte a échoué.';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        message = xhr.responseJSON.message;
+                    }
+                    onAccountDeletionError(message);
+                }
+            });
+        }, function () {
+            onAccountDeletionError('La suppression du compte a échoué.');
+        });
+    }
+
+    function onAccountDeletionSuccess(message) {
+        clearAccessToken();
+        onDeauthentication(message);
+        updateRegisterMessage('');
+    }
+
+    function onAccountDeletionError(message) {
+        updateProfileMessage(message);
+    }
+
+    $(function () {
+        $('#auth-form').on('submit', function (event) {
+            event.preventDefault();
+            var email = $('#auth-email').val();
+            var password = $('#auth-password').val();
+            authenticate(email, password);
+        });
+
+        $('#logout-button').on('click', function () {
+            deauthenticate();
+        });
+
+        $('#register-form').on('submit', function (event) {
+            event.preventDefault();
+            var registrationData = {
+                first_name: $('#register-first-name').val(),
+                last_name: $('#register-last-name').val(),
+                pseudo: $('#register-pseudo').val(),
+                birth_date: $('#register-birth-date').val(),
+                gender: $('#register-gender').val(),
+                avatar: $('#register-avatar').val(),
+                email: $('#register-email').val(),
+                password: $('#register-password').val(),
+            };
+            registerUser(registrationData);
+        });
+
+        $('#profile-form').on('submit', function (event) {
+            event.preventDefault();
+
+            var updateData = {};
+            var pseudo = $('#profile-pseudo').val();
+            var gender = $('#profile-gender').val();
+            var avatar = $('#profile-avatar').val();
+
+            if (pseudo) {
+                updateData.pseudo = pseudo;
+            }
+            if (gender) {
+                updateData.gender = gender;
+            }
+            if (avatar) {
+                updateData.avatar = avatar;
+            }
+
+            if ($.isEmptyObject(updateData)) {
+                updateProfileMessage('Veuillez renseigner au moins un champ pour mettre à jour votre profil.');
+                return;
+            }
+
+            updateUserProfile(updateData);
+        });
+
+        $('#delete-account-button').on('click', function () {
+            deleteUserAccount();
+        });
+
+        $('#available-players-list').on('click', '.start-game-button', function () {
+            var opponentId = parseInt($(this).attr('data-user-id'), 10);
+            if (!isNaN(opponentId)) {
+                startGameAgainst(opponentId);
+            }
+        });
+
+        $('#guess-form').on('submit', function (event) {
+            event.preventDefault();
+            var guess = $('#guess-word').val();
+            submitGuess(guess);
+        });
+
+        $('#forfeit-button').on('click', function () {
+            forfeitGame();
+        });
+
+        $('#open-motus-button').on('click', function () {
+            if ($(this).prop('disabled')) {
+                return;
+            }
+            revealMotusSection();
+        });
+
+        clearGameUI();
+        updateMotusAccessUI();
+        restoreSession();
+    });
+
+    function restoreSession() {
+        var accessToken = getAccessToken();
+
+        if (!accessToken) {
+            return;
+        }
+
+        if (isAccessTokenExpired(accessToken)) {
+            requestTokenRefresh()
+                .done(function () {
+                    onAuthenticationSuccess('Session restaurée.');
+                })
+                .fail(function () {
+                    handleTokenRefreshFailure();
                 });
-
-                if (!hasDisplayedSomeone) {
-                    list.append('<li>Vous êtes le seul joueur connecté pour le moment.</li>');
-                }
-            },
-            error: function (xhr) {
-                const message = handleAjaxError(xhr, 'Impossible de récupérer les joueurs en ligne.');
-                $('#onlinePlayersMsg').text(message);
-            }
-        });
-    }
-
-    function fetchInvitations() {
-        $.ajax({
-            url: `${API_BASE}/game/invitations`,
-            method: 'GET',
-            headers: {
-                'Authorization': 'Bearer ' + getStoredToken(),
-            },
-            xhrFields: {
-                withCredentials: true,
-            },
-            success: function (response) {
-                const invitations = response.data || [];
-                const list = $('#invitationList');
-                list.empty();
-                $('#invitationMsg').text('');
-
-                if (!invitations.length) {
-                    list.append('<li>Aucune invitation en attente.</li>');
-                    return;
-                }
-
-                invitations.forEach(function (invitation) {
-                    const listItem = $('<li>').addClass('inline-actions');
-                    const from = invitation.from?.pseudo || invitation.from?.email || `Joueur #${invitation.from_id || invitation.id}`;
-                    listItem.append($('<span>').text(`Invitation de ${from}`));
-                    const targetGameId = invitation.game_id || invitation.id;
-                    const acceptButton = $('<button type="button">').text('Accepter');
-                    acceptButton.on('click', function () {
-                        acceptInvitation(targetGameId);
-                    });
-                    listItem.append(acceptButton);
-                    list.append(listItem);
-                });
-            },
-            error: function (xhr) {
-                const message = handleAjaxError(xhr, 'Impossible de récupérer les invitations.');
-                $('#invitationMsg').text(message);
-            }
-        });
-    }
-
-    function resolveCellData(cell, index) {
-        if (!cell) {
-            return { letter: '', status: '' };
-        }
-
-        if (typeof cell === 'string') {
-            return { letter: cell[index] || cell, status: '' };
-        }
-
-        if (Array.isArray(cell)) {
-            return resolveCellData(cell[index], index);
-        }
-
-        if (typeof cell === 'object') {
-            const letter = cell.letter || cell.value || cell.char || '';
-            const status = cell.status || cell.state || '';
-            return { letter, status };
-        }
-
-        return { letter: '', status: '' };
-    }
-
-    function renderGameGrid(boardData) {
-        const rows = 8;
-        const columns = 6;
-        const grid = $('#motusGrid');
-        grid.empty();
-
-        const rowsData = boardData || [];
-
-        for (let rowIndex = 0; rowIndex < rows; rowIndex++) {
-            const rowElement = $('<div>').addClass('motus-row');
-            const rowData = rowsData[rowIndex] || { letters: [], statuses: [] };
-
-            for (let colIndex = 0; colIndex < columns; colIndex++) {
-                const cellElement = $('<span>').addClass('motus-cell');
-                let letter = '';
-                let status = '';
-
-                if (typeof rowData === 'string') {
-                    letter = rowData[colIndex] || '';
-                } else if (Array.isArray(rowData)) {
-                    const data = resolveCellData(rowData[colIndex], colIndex);
-                    letter = data.letter || '';
-                    status = data.status || '';
-                } else if (typeof rowData === 'object') {
-                    if (Array.isArray(rowData.letters)) {
-                        letter = rowData.letters[colIndex] || '';
-                    }
-                    if (Array.isArray(rowData.statuses)) {
-                        status = rowData.statuses[colIndex] || '';
-                    }
-                    if (!letter && Array.isArray(rowData.cells)) {
-                        const data = resolveCellData(rowData.cells[colIndex], colIndex);
-                        letter = data.letter || '';
-                        status = data.status || '';
-                    }
-                }
-
-                switch (status) {
-                    case 'correct':
-                    case 'good':
-                    case 'ok':
-                        cellElement.addClass('cell-correct');
-                        break;
-                    case 'present':
-                    case 'partial':
-                    case 'misplaced':
-                        cellElement.addClass('cell-present');
-                        break;
-                    case 'absent':
-                    case 'wrong':
-                    case 'ko':
-                        cellElement.addClass('cell-absent');
-                        break;
-                }
-
-                cellElement.text((letter || '').toString().toUpperCase().charAt(0));
-                rowElement.append(cellElement);
-            }
-
-            grid.append(rowElement);
-        }
-    }
-
-    function stopGuessTimer() {
-        if (guessTimer) {
-            clearInterval(guessTimer);
-            guessTimer = null;
-        }
-        guessTimeLeft = 0;
-        $('#guessTimer').text('');
-        $('#guessSubmit').prop('disabled', false);
-    }
-
-    function updateTimerDisplay() {
-        if (guessTimeLeft > 0) {
-            $('#guessTimer').text(`Temps restant : ${guessTimeLeft} seconde${guessTimeLeft > 1 ? 's' : ''}.`);
-        }
-    }
-
-    function startGuessTimer() {
-        stopGuessTimer();
-        guessTimeLeft = TURN_TIMER_DURATION;
-        updateTimerDisplay();
-        $('#guessSubmit').prop('disabled', false);
-
-        guessTimer = setInterval(function () {
-            guessTimeLeft -= 1;
-            if (guessTimeLeft <= 0) {
-                stopGuessTimer();
-                $('#guessTimer').text('Temps écoulé !');
-                $('#guessSubmit').prop('disabled', true);
-            } else {
-                updateTimerDisplay();
-            }
-        }, 1000);
-    }
-
-    function updateTurnInfo(game) {
-        const myId = getStoredUserId();
-        const isFinished = game.status === 'finished' || game.status === 'won' || game.status === 'lost';
-        const currentPlayerId = String(game.current_player_id || game.turn_player_id || '');
-        const isMyTurn = myId && String(myId) === currentPlayerId;
-
-        if (isFinished) {
-            $('#turnInfo').text('La partie est terminée.');
-            $('#guessForm').prop('hidden', true);
-            stopGuessTimer();
-            currentTurnKey = null;
             return;
         }
 
-        const boardSource = Array.isArray(game.board) ? game.board : Array.isArray(game.grid) ? game.grid : Array.isArray(game.rows) ? game.rows : [];
-        const attemptCounter = Array.isArray(boardSource) ? boardSource.filter(Boolean).length : '';
-        const turnIdentifier = `${game.id || ''}:${firstNonNull(game.turn, game.turn_number, game.round, game.current_turn, game.played_turns, attemptCounter)}:${currentPlayerId}`;
-
-        if (isMyTurn) {
-            $('#turnInfo').text('À vous de jouer !');
-            $('#guessForm').prop('hidden', false);
-            $('#guessSubmit').prop('disabled', false);
-            if (currentTurnKey !== turnIdentifier || guessTimeLeft === 0) {
-                startGuessTimer();
-            }
-        } else if (currentPlayerId) {
-            $('#turnInfo').text(`Tour du joueur #${currentPlayerId}.`);
-            $('#guessForm').prop('hidden', true);
-            stopGuessTimer();
-        } else {
-            $('#turnInfo').text('En attente du prochain tour...');
-            $('#guessForm').prop('hidden', true);
-            stopGuessTimer();
-        }
-
-        currentTurnKey = turnIdentifier;
+        onAuthenticationSuccess('Session restaurée.');
     }
-
-    function updateVictoryMessage(game) {
-        let message = '';
-        const myId = getStoredUserId();
-        if (game.status === 'won') {
-            if (game.winner_id && String(game.winner_id) === String(myId)) {
-                message = 'Victoire ! 🎉';
-            } else if (game.winner_id) {
-                message = `Défaite. Le joueur #${game.winner_id} a trouvé le mot.`;
-            } else {
-                message = 'Victoire annoncée !';
-            }
-        } else if (game.status === 'lost') {
-            message = 'Défaite. Le mot n’a pas été trouvé.';
-        } else if (game.status === 'finished' && game.result) {
-            message = game.result.message || '';
-        }
-
-        $('#victoryMessage').text(message);
-    }
-
-    function updateGameState(game) {
-        if (!game) {
-            $('#gameStatus').text('Aucune partie active.');
-            $('#turnInfo').text('');
-            $('#victoryMessage').text('');
-            $('#guessForm').prop('hidden', true);
-            renderGameGrid([]);
-            stopGuessTimer();
-            currentTurnKey = null;
-            return;
-        }
-
-        $('#gameStatus').text(game.description || game.state || `Partie #${game.id}`);
-        renderGameGrid(game.board || game.grid || game.rows || []);
-        updateTurnInfo(game);
-        updateVictoryMessage(game);
-
-        if (game.status === 'won' || game.status === 'lost' || game.status === 'finished') {
-            stopGuessTimer();
-            currentTurnKey = null;
-        }
-    }
-
-    function fetchGameState(gameId) {
-        if (!gameId) {
-            updateGameState(null);
-            return;
-        }
-
-        $.ajax({
-            url: `${API_BASE}/game/${gameId}`,
-            method: 'GET',
-            headers: {
-                'Authorization': 'Bearer ' + getStoredToken(),
-            },
-            xhrFields: {
-                withCredentials: true,
-            },
-            success: function (response) {
-                const game = response.data?.game || response.data || null;
-                updateGameState(game);
-            },
-            error: function (xhr) {
-                const message = handleAjaxError(xhr, 'Impossible de récupérer la partie.');
-                $('#gameStatus').text(message);
-            }
-        });
-    }
-
-    function submitGuess(word) {
-        if (!currentGameId) {
-            $('#guessMsg').text('Aucune partie en cours.');
-            return;
-        }
-
-        $.ajax({
-            url: `${API_BASE}/game/${currentGameId}/guess`,
-            method: 'POST',
-            headers: {
-                'Authorization': 'Bearer ' + getStoredToken(),
-            },
-            data: { word: word },
-            xhrFields: {
-                withCredentials: true,
-            },
-            success: function (response) {
-                $('#guessMsg').text('Mot envoyé.');
-                $('#guessInput').val('');
-                stopGuessTimer();
-                fetchGameState(currentGameId);
-            },
-            error: function (xhr) {
-                const message = handleAjaxError(xhr, 'Le mot n’a pas pu être envoyé.');
-                $('#guessMsg').text(message);
-            }
-        });
-    }
-
-    function setCurrentGame(gameId) {
-        currentGameId = gameId || null;
-        if (currentGameId) {
-            $('#gameSection').prop('hidden', false);
-            fetchGameState(currentGameId);
-            if (gameInterval) {
-                clearInterval(gameInterval);
-            }
-            gameInterval = setInterval(function () {
-                fetchGameState(currentGameId);
-            }, GAME_REFRESH);
-        } else {
-            updateGameState(null);
-            if (gameInterval) {
-                clearInterval(gameInterval);
-                gameInterval = null;
-            }
-            currentTurnKey = null;
-        }
-    }
-
-    function fetchCurrentGame() {
-        $.ajax({
-            url: `${API_BASE}/game/current`,
-            method: 'GET',
-            headers: {
-                'Authorization': 'Bearer ' + getStoredToken(),
-            },
-            xhrFields: {
-                withCredentials: true,
-            },
-            success: function (response) {
-                const game = response.data?.game || response.data || null;
-                if (game?.id) {
-                    setCurrentGame(game.id);
-                } else {
-                    setCurrentGame(null);
-                }
-            },
-            error: function () {
-                setCurrentGame(null);
-            }
-        });
-    }
-
-    function enableGameplayFeatures() {
-        fetchOnlinePlayers();
-        fetchInvitations();
-        fetchCurrentGame();
-
-        if (onlinePlayersInterval) {
-            clearInterval(onlinePlayersInterval);
-        }
-        if (invitationsInterval) {
-            clearInterval(invitationsInterval);
-        }
-
-        onlinePlayersInterval = setInterval(fetchOnlinePlayers, ONLINE_PLAYERS_REFRESH);
-        invitationsInterval = setInterval(fetchInvitations, INVITATIONS_REFRESH);
-    }
-
-    function disableGameplayFeatures() {
-        $('#onlinePlayersList').empty();
-        $('#onlinePlayersMsg').text('');
-        $('#invitationList').empty();
-        $('#invitationMsg').text('');
-        setCurrentGame(null);
-
-        if (onlinePlayersInterval) {
-            clearInterval(onlinePlayersInterval);
-            onlinePlayersInterval = null;
-        }
-
-        if (invitationsInterval) {
-            clearInterval(invitationsInterval);
-            invitationsInterval = null;
-        }
-    }
-
-    $('#loginForm').on('submit', function (event) {
-        event.preventDefault();
-        const email = $('#loginEmail').val().trim();
-        const password = $('#loginPassword').val();
-        $('#loginMsg').text('Connexion en cours...');
-        authenticate(email, password);
-    });
-
-    $('#logoutForm').on('submit', function (event) {
-        event.preventDefault();
-        $('#logoutMsg').text('Déconnexion en cours...');
-        deauthenticate();
-    });
-
-    $('#registerForm').on('submit', function (event) {
-        event.preventDefault();
-        const formData = $(this).serialize();
-        $('#registerMsg').text('Création du compte...');
-        registerUser(formData);
-    });
-
-    $('#updateForm').on('submit', function (event) {
-        event.preventDefault();
-        const pseudo = $('#updatePseudo').val().trim();
-        const gender = $('#updateGender').val();
-        const avatar = $('#updateAvatar').val().trim();
-
-        const toUpdate = {};
-        if (pseudo) { toUpdate.pseudo = pseudo; }
-        if (gender) { toUpdate.gender = gender; }
-        if (avatar) { toUpdate.avatar = avatar; }
-
-        if (Object.keys(toUpdate).length === 0) {
-            $('#updateMsg').text('Aucune modification à envoyer.');
-            return;
-        }
-
-        $('#updateMsg').text('Mise à jour en cours...');
-        updateUser(toUpdate);
-    });
-
-    $('#deleteForm').on('submit', function (event) {
-        event.preventDefault();
-        $('#deleteMsg').text('Suppression en cours...');
-        deleteUser();
-    });
-
-    $('#guessForm').on('submit', function (event) {
-        event.preventDefault();
-        const guess = $('#guessInput').val().trim();
-        if (!/^[A-Za-zÀ-ÖØ-öø-ÿ]{6}$/.test(guess)) {
-            $('#guessMsg').text('Le mot doit contenir exactement 6 lettres.');
-            return;
-        }
-
-        $('#guessMsg').text('Envoi en cours...');
-        submitGuess(guess.toLowerCase());
-    });
-
-    $(document).ready(function () {
-        const storedToken = getStoredToken();
-        const storedUserId = getStoredUserId();
-        const storedEmail = localStorage.getItem('userEmail');
-
-        if (storedToken && storedUserId) {
-            setAuthenticatedState(true, { userId: storedUserId, email: storedEmail || '' });
-        } else {
-            setAuthenticatedState(false);
-        }
-    });
 </script>
 </body>
 </html>

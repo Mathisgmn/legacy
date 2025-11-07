@@ -177,6 +177,21 @@ class User
         }
     }
 
+    public function setLastConnectedAt(int $id): void
+    {
+        try {
+            throwDbNullConnection($this->conn);
+
+            $query = 'UPDATE user SET last_connected_at = NOW() WHERE id = :id';
+
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+            $stmt->execute();
+        } catch (PDOException|Exception $e) {
+            logWithDate('Query failed', $e->getMessage());
+        }
+    }
+
     public function deleteById($id): void
     {
         try {
