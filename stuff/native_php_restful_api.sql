@@ -30,6 +30,7 @@ USE `native_php_restful_api`;
 DROP TABLE IF EXISTS `game_guess`;
 DROP TABLE IF EXISTS `game_player`;
 DROP TABLE IF EXISTS `game`;
+DROP TABLE IF EXISTS `user_presence`;
 
 --
 -- Structure de la table `refresh_token`
