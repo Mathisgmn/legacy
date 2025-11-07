@@ -145,6 +145,8 @@ class UserPresence
 
             $stmt = $this->conn->prepare($query);
 
+            $stmt->bindParam(':threshold', $threshold);
+
             if ($excludeUserId !== null) {
                 $stmt->bindParam(':exclude_user_id', $excludeUserId, PDO::PARAM_INT);
             }
