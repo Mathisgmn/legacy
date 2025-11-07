@@ -71,7 +71,11 @@ class UserPresence
         try {
             throwDbNullConnection($this->conn);
 
-            $query = 'UPDATE user_presence SET last_connected_at = UTC_TIMESTAMP() WHERE user_id = :user_id';
+            $query = 'UPDATE user_presence '
+                . 'SET last_connected_at = UTC_TIMESTAMP(), '
+                . "status = CASE WHEN status = 'offline' THEN 'available' ELSE status END "
+                . 'WHERE user_id = :user_id';
+
             $stmt = $this->conn->prepare($query);
             $stmt->bindParam(':user_id', $userId, PDO::PARAM_INT);
             $stmt->execute();
