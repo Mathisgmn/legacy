@@ -224,22 +224,54 @@ class UserController
             exit(1);
         }
 
-        $user = $this->user->findByToken($refreshToken);
-        if (!$user) {
-            sendResponseCustom('Invalid or revoked refresh token', null, 'Error', 401);
-            exit(1);
-        }
-
         try {
-            $payload = ['user_id' => $user['id'], 'email' => $user['email']];
-            $accessToken = $this->jwtService->createToken($payload);
+            $result = $this->createAccessTokenFromRefreshToken($refreshToken);
         } catch (Exception $e) {
             logWithDate('Unknown error', $e->getMessage());
             sendResponse500();
             exit(1);
         }
 
-        sendResponseCustom('Successfully reauthenticate user', ['accessToken' => $accessToken]);
+        if (!$result) {
+            sendResponseCustom('Invalid or revoked refresh token', null, 'Error', 401);
+            exit(1);
+        }
+
+        sendResponseCustom('Successfully reauthenticate user', ['accessToken' => $result['accessToken']]);
         exit(0);
+    }
+
+    public function refreshAccessTokenFromCookie(): ?array
+    {
+        $refreshToken = $_COOKIE['refresh_token'] ?? null;
+
+        if (!$refreshToken) {
+            return null;
+        }
+
+        try {
+            return $this->createAccessTokenFromRefreshToken($refreshToken);
+        } catch (Exception $e) {
+            logWithDate('Unknown error', $e->getMessage());
+
+            return null;
+        }
+    }
+
+    private function createAccessTokenFromRefreshToken(string $refreshToken): ?array
+    {
+        $user = $this->user->findByToken($refreshToken);
+
+        if (!$user) {
+            return null;
+        }
+
+        $payload = ['user_id' => $user['id'], 'email' => $user['email']];
+        $accessToken = $this->jwtService->createToken($payload);
+
+        return [
+            'accessToken' => $accessToken,
+            'payload' => $payload,
+        ];
     }
 }

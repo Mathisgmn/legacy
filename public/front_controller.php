@@ -4,6 +4,7 @@ header('Access-Control-Allow-Origin: http://localhost');
 header('Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization');
 header('Access-Control-Allow-Credentials: true');
+header('Access-Control-Expose-Headers: X-Access-Token');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(204);
@@ -45,7 +46,7 @@ if (!str_starts_with($requestUri, '/api/')) {
 } elseif ($requestUri === '/api/user' && $requestMethod === 'POST') {
     $userController->create();
 } else {
-    $payload = authenticateRequest($jwtService);
+    $payload = authenticateRequest($jwtService, $userController);
     if (!$payload) {
         sendResponse401();
         exit(1);
