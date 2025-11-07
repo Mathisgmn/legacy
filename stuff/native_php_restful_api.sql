@@ -101,6 +101,8 @@ CREATE TABLE IF NOT EXISTS `game_guess` (
   `game_player_id` int NOT NULL,
   `guess_word` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
   `result_pattern` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `attempt_number` int NOT NULL,
+  `is_correct` tinyint(1) NOT NULL DEFAULT '0',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `game_id` (`game_id`),
@@ -127,12 +129,28 @@ CREATE TABLE IF NOT EXISTS `user` (
   `email` varchar(250) COLLATE utf8mb4_unicode_ci NOT NULL,
   `password` varchar(250) COLLATE utf8mb4_unicode_ci NOT NULL,
   `created_at` datetime NOT NULL,
-  `last_connected_at` datetime DEFAULT NULL,
+  `last_connected_at` datetime DEFAULT NULL COMMENT 'Stocké en UTC',
   `deactivated_at` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `pseudo` (`pseudo`),
   UNIQUE KEY `email` (`email`)
 ) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `user_presence`
+--
+
+DROP TABLE IF EXISTS `user_presence`;
+CREATE TABLE IF NOT EXISTS `user_presence` (
+  `user_id` int NOT NULL,
+  `status` enum('offline','online','available','in_game') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'offline',
+  `last_connected_at` datetime DEFAULT NULL COMMENT 'Stocké en UTC',
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`user_id`),
+  CONSTRAINT `user_presence_user_fk` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Déchargement des données de la table `user`
