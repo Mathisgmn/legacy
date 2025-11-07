@@ -389,6 +389,18 @@
     }
 
     function sendInvitation(opponentId) {
+        const wordPrompt = window.prompt('Choisissez un mot secret de 6 lettres :');
+        if (wordPrompt === null) {
+            $('#onlinePlayersMsg').text('Invitation annulée.');
+            return;
+        }
+
+        const sanitizedWord = (wordPrompt || '').replace(/\s+/g, '').toUpperCase();
+        if (!/^[A-Z]{6}$/.test(sanitizedWord)) {
+            $('#onlinePlayersMsg').text('Le mot secret doit contenir exactement 6 lettres (A-Z).');
+            return;
+        }
+
         $('#onlinePlayersMsg').text('Création de la partie...');
 
         $.ajax({
@@ -398,7 +410,7 @@
                 'Authorization': 'Bearer ' + getStoredToken(),
                 'Content-Type': 'application/json',
             },
-            data: JSON.stringify({ opponent_id: opponentId }),
+            data: JSON.stringify({ opponent_id: opponentId, target_word: sanitizedWord }),
             processData: false,
             xhrFields: {
                 withCredentials: true,
