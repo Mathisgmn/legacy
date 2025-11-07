@@ -61,11 +61,31 @@ if (!str_starts_with($requestUri, '/api/')) {
             sendResponse404();
             exit(1);
         }
+        $userController->keepPresenceAlive((int) $userId);
     }
     if ($requestUri === '/api/logout') {
         switch ($requestMethod) {
             case 'POST':
                 $userController->deauthenticate($userId);
+                break;
+            default:
+                sendResponse405();
+                break;
+        }
+    } elseif ($requestUri === '/api/users/online') {
+        switch ($requestMethod) {
+            case 'GET':
+                $userController->listOnline((int) $userId);
+                break;
+            default:
+                sendResponse405();
+                break;
+        }
+    } elseif (preg_match('#^/api/game/(\d+)/invite$#', $requestUri, $matches)) {
+        switch ($requestMethod) {
+            case 'POST':
+                $gameId = (int) $matches[1];
+                $userController->inviteToGame($gameId, (int) $userId);
                 break;
             default:
                 sendResponse405();
